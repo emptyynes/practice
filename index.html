@@ -3,8 +3,49 @@
 	<head>
 		<meta charset="utf-8">
 		<title>testing</title>
+		<style>
+			body {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+
+			* {
+				font-size: 16pt;
+			}
+
+			content {
+				display: flex;
+				flex-direction: column;
+				min-width: 33%;
+				max-width: 33%;
+				padding: 0.4rem;
+				margin: 0.6rem;
+				border: 1px solid black;
+			}
+
+			content * {
+				margin: 0.2rem;
+			}
+		</style>
 	</head>
-	<body></body>
+	<body>
+		<content>
+			<input id="username" type="text" placeholder="username">
+			<input id="password" type="text" placeholder="password">
+			<button id="authenficate_button">authenficate</button>
+		</content>
+		<content>
+			<button id="connect_button">connect</button>
+		</content>
+		<content>
+			<input id="send_input" type="text" placeholder="data">
+			<button id="send_button">send</button>
+		</content>
+		<content>
+			<button id="close_button">close</button>
+		</content>
+	</body>
 	<script type="text/javascript">
 		const auth = async (username, password) => {
 			return await fetch(`/auth?username=${username}&password=${password}`);
@@ -22,6 +63,27 @@
 				},
 				close: () => { socket.close() }
 			};
+		}
+	</script>
+	<script type="text/javascript">
+		var connection = null;
+		document.getElementById('authenficate_button').onclick = () => {
+			auth(
+				document.getElementById('username').value,
+				document.getElementById('password').value
+			)
+		}
+
+		document.getElementById('connect_button').onclick = () => {
+			connection = start();
+		}
+
+		document.getElementById('send_button').onclick = () => {
+			connection.sendString(document.getElementById('send_input').value);
+		}
+		
+		document.getElementById('close_button').onclick = () => {
+			connection.close();
 		}
 	</script>
 </html>
