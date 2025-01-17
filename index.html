@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="">
+	<head>
+		<meta charset="utf-8">
+		<title>testing</title>
+	</head>
+	<body></body>
+	<script type="text/javascript">
+		const auth = async (username, password) => {
+			return await fetch(`/auth?username=${username}&password=${password}`);
+		}
+
+		const start = () => {
+			const socket = new WebSocket("ws://localhost");
+
+			return {
+				sendString: (str) => { socket.send(str) },
+				sendBlob: (blob) => { socket.send(blob) },
+				sendCommand: (command, data) => {
+					if (data) socket.send(`\0${command}\0${JSON.stringify(data)}`)
+					else socket.send(`\0${command}`)
+				},
+				close: () => { socket.close() }
+			};
+		}
+	</script>
+</html>
