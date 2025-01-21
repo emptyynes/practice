@@ -51,22 +51,29 @@
 			return await fetch(`/auth?username=${username}&password=${password}`);
 		}
 
-		const start = () => {
-			const socket = new WebSocket("ws://localhost");
+		class WebSocketTransport {
+			socket
 
-			socket.addEventListener("message", (event) => {
-				console.log("Message from server ", event.data);
-			});
+			constructor() {
+				this.socket = new WebSocket("ws://localhost");
+			}
 
-			return {
-				sendString: (str) => { socket.send(str) },
-				sendBlob: (blob) => { socket.send(blob) },
-				sendCommand: (command, data) => {
-					if (data) socket.send(`\0${command}\0${JSON.stringify(data)}`)
-					else socket.send(`\0${command}`)
-				},
-				close: () => { socket.close() }
-			};
+			sendString(string_data) {
+				this.socket.send(string_data)
+			}
+
+			sendBlob(blob_data) {
+				this.socket.send(blob_data)
+			}
+
+			sendCommand(command, data) {
+				if (data) socket.send(`\0${command}\0${JSON.stringify(data)}`)
+				else socket.send(`\0${command}`)
+			}
+
+			close() {
+				socket.close()
+			}
 		}
 	</script>
 	<script type="text/javascript">
@@ -79,7 +86,7 @@
 		}
 
 		document.getElementById('connect_button').onclick = () => {
-			connection = start();
+			connection = new WebSocketTransport();
 		}
 
 		document.getElementById('send_button').onclick = () => {
