@@ -26,12 +26,12 @@ webSocketServer.on('connection', function connection(webSocket) {
 });
 
 
-app.get('/', function (req, res) {
-	const fileName = `${__dirname}/index.html`;
-	res.sendFile(fileName, null, function (err) {
-		if (err) console.error('Error sending file:', err);
-	});
-});
+// app.get('/', function (req, res) {
+// 	const fileName = `${__dirname}/frontend/index.html`;
+// 	res.sendFile(fileName, null, function (err) {
+// 		if (err) console.error('Error sending file:', err);
+// 	});
+// });
 
 app.get('/auth', function (req, res) {
 	if (req.query.username && req.query.password) {

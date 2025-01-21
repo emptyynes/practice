@@ -54,6 +54,10 @@
 		const start = () => {
 			const socket = new WebSocket("ws://localhost");
 
+			socket.addEventListener("message", (event) => {
+				console.log("Message from server ", event.data);
+			});
+
 			return {
 				sendString: (str) => { socket.send(str) },
 				sendBlob: (blob) => { socket.send(blob) },

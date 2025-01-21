@@ -2,10 +2,13 @@
   "devDependencies": {
     "ts-node": "^10.9.2",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
   },
   "scripts": {
-    "start": "npx tsx index.ts"
+    "start": "npx tsx backend/index.ts",
+    "build": "webpack"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
