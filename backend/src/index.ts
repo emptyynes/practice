@@ -3,13 +3,12 @@ import cookie from 'cookie';
 import { WebSocketServer } from 'ws';
 
 const app = express();
-const port = 8080;
+const port = 8081;
 
-// app.use(express.static('../dist'));
-
-const webSocketServer = new WebSocketServer({ noServer: true });
+const webSocketServer = new WebSocketServer({ noServer: true, path: '/websocket' });
 
 webSocketServer.on('connection', function connection(webSocket) {
+  // console.log("!!!")
   webSocket.on('error', console.error);
 
   webSocket.on('message', function message(data: any) {
@@ -23,7 +22,7 @@ webSocketServer.on('connection', function connection(webSocket) {
       console.log(`received: ${data}`, data.length);
   });
 
-  webSocket.send('hello');
+  // webSocket.send('hello');
 });
 
 app.get('/api/auth', function (request, response) {
@@ -44,9 +43,15 @@ app.get('/api/auth', function (request, response) {
 const server = app.listen(port);
 
 server.on('upgrade', (request, socket, head) => {
-  let cookies = cookie.parse(request.headers.cookie || "");
-  if (cookies.username && cookies.password)
+  // let cookies = cookie.parse(request.headers.cookie || "");
+  // if (cookies.username && cookies.password)
     webSocketServer.handleUpgrade(request, socket, head, socket => {
       webSocketServer.emit('connection', socket, request);
     });
 });
+
+// server.on('upgrade', (request, socket, head) => {
+//   webSocketServer.handleUpgrade(request, socket, head, socket => {
+//     webSocketServer.emit('connection', socket, request);
+//   });
+// });
