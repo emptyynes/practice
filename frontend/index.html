@@ -48,14 +48,14 @@
 	</body>
 	<script type="text/javascript">
 		const auth = async (username, password) => {
-			return await fetch(`/auth?username=${username}&password=${password}`);
+			return await fetch(`/api/auth?username=${username}&password=${password}`);
 		}
 
 		class WebSocketTransport {
 			socket
 
 			constructor() {
-				this.socket = new WebSocket("ws://localhost");
+				this.socket = new WebSocket("ws://localhost:8080/ws");
 			}
 
 			sendString(string_data) {
@@ -72,7 +72,7 @@
 			}
 
 			close() {
-				socket.close()
+				this.socket.close()
 			}
 		}
 	</script>
