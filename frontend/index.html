@@ -39,62 +39,43 @@
 			<button id="connect_button">connect</button>
 		</content>
 		<content>
-			<input id="send_input" type="text" placeholder="data">
-			<button id="send_button">send</button>
+			<input id="get_input" type="text" placeholder="get request">
+			<button id="get_button">get</button>
+		</content>
+		<content>
+			<input id="post_input" type="text" placeholder="post request">
+			<button id="post_button">post</button>
 		</content>
 		<content>
 			<button id="close_button">close</button>
 		</content>
 	</body>
+	<script src="bundle.js"></script>
 	<script type="text/javascript">
-		const auth = async (username, password) => {
-			return await fetch(`/api/auth?username=${username}&password=${password}`);
-		}
+		var simple_auth = new bundle.SimpleAuthProvider();
+		var wsc = new bundle.WebSocketConnector(simple_auth);
 
-		class WebSocketTransport {
-			socket
-
-			constructor() {
-				this.socket = new WebSocket("ws://localhost:3000/websocket");
-			}
-
-			sendString(string_data) {
-				this.socket.send(string_data)
-			}
-
-			sendBlob(blob_data) {
-				this.socket.send(blob_data)
-			}
-
-			sendCommand(command, data) {
-				if (data) socket.send(`\0${command}\0${JSON.stringify(data)}`)
-				else socket.send(`\0${command}`)
-			}
-
-			close() {
-				this.socket.close()
-			}
-		}
-	</script>
-	<script type="text/javascript">
-		var connection = null;
 		document.getElementById('authenficate_button').onclick = () => {
-			auth(
+			simple_auth.auth(
 				document.getElementById('username').value,
 				document.getElementById('password').value
 			)
 		}
 
 		document.getElementById('connect_button').onclick = () => {
-			connection = new WebSocketTransport();
+			wsc.connect();
 		}
 
-		document.getElementById('send_button').onclick = () => {
-			connection.sendString(document.getElementById('send_input').value);
+		document.getElementById('get_button').onclick = () => {
+			wsc.get(document.getElementById('get_input').value);
+		}
+
+		document.getElementById('post_button').onclick = () => {
+			wsc.post(document.getElementById('post_input').value);
 		}
 		
 		document.getElementById('close_button').onclick = () => {
-			connection.close();
+			wsc.close();
 		}
 	</script>
 </html>
