@@ -4,14 +4,19 @@ export class SimpleAuthProvider implements AuthProvider {
 	isAuthentificated: boolean = false
 
 	constructor() {
+		this.isAuthentificated = localStorage.auth ?? false;
 		fetch('/api/authCheck').then(response => {
-			this.isAuthentificated = response.status === 200
+			this.isAuthentificated = response.status === 200;
+			localStorage.auth = this.isAuthentificated;
 		})
 	}
 
-	async auth(username: string, password: string) {
-		let result = await fetch(`/api/auth?username=${username}&password=${password}`);
-		fetch('/api/authCheck').then(response => { this.isAuthentificated = response.status === 200 })
+	async auth() {
+		let result = await fetch(`/api/auth?username=admin&password=admin`);
+		fetch('/api/authCheck').then(response => {
+			this.isAuthentificated = response.status === 200;
+			localStorage.auth = this.isAuthentificated;
+		})
 		return result;
 	}
 }

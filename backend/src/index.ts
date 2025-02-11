@@ -3,7 +3,7 @@ import cookie from 'cookie';
 import { WebSocketServer } from 'ws';
 
 const app = express();
-const port = 8080
+const port = 8080;
 
 const webSocketServer = new WebSocketServer({ noServer: true });
 
@@ -29,6 +29,7 @@ webSocketServer.on('connection', function connection(webSocket) {
 
   webSocket.on('message', function message(data_object) {
     let data: WebSocketRequest<any> = JSON.parse(data_object.toString());
+    console.log(`received ${data.payload} with id ${data.id}`)
     if (typeof data.payload === "string") {
       let string_data: string = data.payload as string;
       if (data.payload === "ping") {
@@ -36,7 +37,6 @@ webSocketServer.on('connection', function connection(webSocket) {
           id: data.id,
           payload: "pong"
         };
-        console.log("ping")
         setTimeout(() => {
           webSocket.send(JSON.stringify(response));
         }, 500);

@@ -1,6 +1,16 @@
 import { ProtocolFSM } from './ProtocolFSM';
-import { State, Event } from './types';
+import { SimpleAuthProvider } from './auth';
+import { State } from './types';
 
-let fsm = new ProtocolFSM();
+let auth = new SimpleAuthProvider();
 
-fsm.sendEvent(Event.Connect)
+export const fsm = new ProtocolFSM(auth);
+
+fsm.event({
+	state: "Idle",
+	data: "connect"
+});
+
+setTimeout(() => {
+	// fsm.event("disconnect");
+}, 2000)

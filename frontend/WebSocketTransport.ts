@@ -26,18 +26,30 @@ export class WebSocketTransport {
 	}
 
 	disconnect() {
-		this.socket!.close();
+		if (this.socket.readyState === WebSocket.OPEN)
+			this.socket.close();
+		else if (this.socket.readyState === WebSocket.CONNECTING) {
+			this.socket.addEventListener("open", (_) => {
+				this.socket.close();
+			})
+		}
 	}
 
-	send<T>(data: T, retry: number) {
+	send<T>(data: T) {
+		// if (this.socket.readyState !== WebSocket.OPEN) throw new Error("WebSocket is not ready")
 		return new Promise((resolve, reject) => {
 			let request: WebSocketRequest<T> = {
 				id: this.latestRequestId++,
 				payload: data
 			};
-			this.socket!.send(JSON.stringify(request));
+			this.socket.send(JSON.stringify(request));
 
 			this.requestsMap.set(request.id, resolve);
+
+			setTimeout(() => {
+				this.requestsMap.delete(request.id);
+				resolve(new Error("timeout"));
+			}, 3000)
 		})
 	}
 }
