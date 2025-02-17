@@ -1,10 +1,11 @@
-import { State, Event } from '../types';
-import { ProtocolFSM } from './';
+import { State } from '../types';
+import { Event } from '../Event';
+import { ProtocolFSM } from '../';
 import { ConnectingState } from './ConnectingState';
 
 export class AuthentificatingState implements State {
-	private fsm: ProtocolFSM
-	name = "Authentificating"
+	private readonly fsm: ProtocolFSM;
+	readonly name = "Authentificating";
 
 	constructor(fsm: ProtocolFSM) {
 		this.fsm = fsm;
@@ -12,11 +13,8 @@ export class AuthentificatingState implements State {
 
 	enter() {
 		this.fsm.authProvider.auth().then(() => {
-			this.fsm.event({
-				state: "Authentificating",
-				data: "authentificated"
-			})
-		})
+			this.fsm.emitEvent("authentificated");
+		});
 	}
 
 	handle(event: Event) {

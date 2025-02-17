@@ -1,11 +1,12 @@
-import { State, Event } from '../types';
-import { ProtocolFSM } from './';
+import { State } from '../types';
+import { Event } from '../Event';
+import { ProtocolFSM } from '../';
 import { ConnectingState } from './ConnectingState';
 import { AuthentificatingState } from './AuthentificatingState';
 
 export class IdleState implements State {
-	private fsm: ProtocolFSM
-	name = "Idle"
+	private readonly fsm: ProtocolFSM;
+	readonly name = "Idle";
 	
 	constructor(fsm: ProtocolFSM) {
 		this.fsm = fsm;

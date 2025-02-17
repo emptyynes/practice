@@ -1,16 +1,17 @@
-import { ProtocolFSM } from './ProtocolFSM';
+import { ProtocolAPI } from './Protocol/ProtocolAPI';
 import { SimpleAuthProvider } from './auth';
-import { State } from './types';
 
 let auth = new SimpleAuthProvider();
 
-export const fsm = new ProtocolFSM(auth);
+export const api = new ProtocolAPI(auth);
 
-fsm.event({
-	state: "Idle",
-	data: "connect"
-});
-
-setTimeout(() => {
-	// fsm.event("disconnect");
+api.connect()
+setTimeout(async () => {
+	console.log(await api.get("testget"));
+}, 1000)
+setTimeout(async () => {
+	console.log(await api.post("testpost"));
 }, 2000)
+// setTimeout(() => {
+// 	api.disconnect()
+// }, 1200)
