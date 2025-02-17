@@ -1,11 +1,11 @@
 import type { State } from './types';
 
 export class Event {
-	state: string;
+	stateId: number;
 	data: string;
 
-	constructor(state: State, data: string) {
-		this.state = state.name;
+	constructor(stateId: number, data: string) {
+		this.stateId = stateId;
 		this.data = data;
 	}
 }

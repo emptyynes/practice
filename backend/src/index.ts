@@ -1,5 +1,6 @@
 import express from 'express';
 import cookie from 'cookie';
+import jwt from 'jsonwebtoken';
 import { WebSocketServer } from 'ws';
 import authRouter from './auth';
 import handler from './protocol';
@@ -12,51 +13,53 @@ const webSocketServer = new WebSocketServer({ noServer: true });
 let endpoints = new Map<string, boolean>();
 
 webSocketServer.on('connection', function connection(webSocket) {
-  let isAlive: boolean = true;
-  let keepaliveCode: number = 0;
+	let isAlive: boolean = true;
+	let keepaliveCode: number = 0;
 
-  console.log("new connection")
+	console.log("new connection")
 
-  webSocket.on('error', console.error);
+	webSocket.on('error', console.error);
 
-  webSocket.on('message', (data) => { handler(webSocket, data) });
+	webSocket.on('message', (data) => { handler(webSocket, data) });
 });
 
 app.get('/api/wsendpoint', (request, response) => {
-  let cookies = cookie.parse(request.headers.cookie || "");
-  if (!(cookies.username && cookies.password)) {
-    response.status(401).send("Unauthorized");
-    return;
-  }
-
-  let uid = `${Math.floor(Math.random() * 1e10)}`;
-  endpoints.set(uid, true);
-  response.send(uid);
-  setTimeout(() => {
-    endpoints.delete(uid);
-  }, 10 * 1000) // endpoint is alive for 10 seconds
-})
+	let cookies = cookie.parse(request.headers.cookie || "");
+	jwt.verify(cookies.accessToken || "", "secret1234", (error, decoded) => {
+		if (error) response.status(401).send("Unauthorized");
+		else {
+			let uid = `${Math.floor(Math.random() * 1e10)}`;
+			endpoints.set(uid, true);
+			response.send(uid);
+			setTimeout(() => {
+				endpoints.delete(uid);
+			}, 10 * 1000) // endpoint is alive for 10 seconds
+		}
+	});
+});
 
 const server = app.listen(port);
 
 server.on('upgrade', (request, socket, head) => {
-  let cookies = cookie.parse(request.headers.cookie || "");
-  if (!(cookies.username && cookies.password)) {
-    socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-    socket.destroy();
-    return;
-  }
+	let cookies = cookie.parse(request.headers.cookie || "");
+	jwt.verify(cookies.accessToken || "", "secret1234", (error, decoded) => {
+		if (error) {
+			socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+			socket.destroy();
+			return;
+		} else {
+			let uid = request.url!.substring("/websocket/".length);
+			if (!endpoints.get(uid)) {
+				socket.write('HTTP/1.1 404 Not Found\r\n\r\n');
+				socket.destroy();
+				return;
+			}
 
-  let uid = request.url!.substring("/websocket/".length);
-  if (!endpoints.get(uid)) {
-    socket.write('HTTP/1.1 404 Not Found\r\n\r\n');
-    socket.destroy();
-    return;
-  }
-
-  webSocketServer.handleUpgrade(request, socket, head, (socket) => {
-    webSocketServer.emit('connection', socket, request);
-  });
+			webSocketServer.handleUpgrade(request, socket, head, (socket) => {
+				webSocketServer.emit('connection', socket, request);
+			});
+		};
+	});
 });
 
 app.use('/api/auth', authRouter);

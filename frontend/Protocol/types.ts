@@ -1,6 +1,7 @@
 export interface AuthProvider {
 	isAuthentificated: boolean;
-	auth: () => Promise<Response>;
+	init: (authSuccessCallback: () => void, authFailedCallback: () => void) => Promise<boolean>;
+	auth: (username: string, password: string) => Promise<void>;
 }
 
 export type WebSocketRequest<T> =  {

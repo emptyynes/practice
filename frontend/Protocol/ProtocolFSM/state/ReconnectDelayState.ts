@@ -1,15 +1,17 @@
 import { State } from '../types';
 import { Event } from '../Event';
-import { ProtocolFSM } from '../';
+import { FSMStateAPI } from '../types';
 import { IdleState } from './IdleState';
 import { ConnectingState } from './ConnectingState';
 
 export class ReconnectDelayState implements State {
-	private readonly fsm: ProtocolFSM;
+	private readonly fsm: FSMStateAPI;
 	readonly name = "ReconnectDelay";
+	id: number;
 	
-	constructor(fsm: ProtocolFSM) {
+	constructor(fsm: FSMStateAPI) {
 		this.fsm = fsm;
+		this.id = fsm.state.id + 1;
 	}
 
 	enter() {

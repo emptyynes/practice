@@ -1,15 +1,18 @@
 import { State } from '../types';
 import { Event } from '../Event';
-import { ProtocolFSM } from '../';
+import { FSMStateAPI } from '../types';
 import { ConnectingState } from './ConnectingState';
 import { AuthentificatingState } from './AuthentificatingState';
 
 export class IdleState implements State {
-	private readonly fsm: ProtocolFSM;
+	private readonly fsm: FSMStateAPI;
 	readonly name = "Idle";
+	id: number;
 	
-	constructor(fsm: ProtocolFSM) {
+	constructor(fsm: FSMStateAPI) {
 		this.fsm = fsm;
+		if (fsm.state) this.id = fsm.state.id + 1;
+		else this.id = 0;
 	}
 
 	handle(event: Event) {

@@ -1,22 +1,24 @@
 import { State } from '../types';
 import { Event } from '../Event';
-import { ProtocolFSM } from '../';
+import { FSMStateAPI } from '../types';
 import { PingMonitor } from '../PingMonitor';
 import { IdleState } from './IdleState';
 import { ReconnectDelayState } from './ReconnectDelayState';
 
 export class ConnectedState implements State {
-	private readonly fsm: ProtocolFSM;
+	private readonly fsm: FSMStateAPI;
 	private pinger?: PingMonitor;
 	readonly name = "Connected";
+	id: number;
 	
-	constructor(fsm: ProtocolFSM) {
+	constructor(fsm: FSMStateAPI) {
 		this.fsm = fsm;
+		this.id = fsm.state.id + 1;
 	}
 
 	private socketCloseEventHandler = () => {
 		this.fsm.emitEvent("broken connection");
-	}
+	};
 
 	enter() {
 		this.pinger = new PingMonitor(this.fsm);

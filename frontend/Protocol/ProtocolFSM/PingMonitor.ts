@@ -1,12 +1,12 @@
-import { ProtocolFSM } from './';
+import { FSMStateAPI } from './types';
 
 
 export class PingMonitor {
 	private pingTimer?: NodeJS.Timeout;
 	private lastStartTime = Date.now() // eslint-disable-line
 	private working: boolean = true;
-	private readonly fsm: ProtocolFSM;
-	constructor(fsm: ProtocolFSM) {
+	private readonly fsm: FSMStateAPI;
+	constructor(fsm: FSMStateAPI) {
 		this.fsm = fsm;
 		this.pingTimer = setTimeout(this.ping, 1000);
 	}
@@ -16,7 +16,8 @@ export class PingMonitor {
 		let startTime = Date.now() // eslint-disable-line
 		console.log(`time between pings: ${startTime - this.lastStartTime}`) // eslint-disable-line
 		this.lastStartTime = startTime // eslint-disable-line
-		this.fsm.send<string>("ping", "get").then((result) => {
+		if (!this.fsm.wst) return this.fsm.emitEvent("broken connection");
+		this.fsm.wst.send<string>("ping", "get").then((result) => {
 			if (!this.working) {
 				console.warn("pong after stopped");
 				return;
@@ -24,7 +25,6 @@ export class PingMonitor {
 			let endTime = Date.now() // eslint-disable-line
 			console.log(`ping time: ${endTime - startTime}`) // eslint-disable-line
 			if (result !== "pong") {
-				console.log(`THIS!!!! ${this.fsm.state.name}`)
 				this.fsm.emitEvent("broken connection");
 			} else
 				this.pingTimer = setTimeout(this.ping, 1000);

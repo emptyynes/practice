@@ -1,10 +1,11 @@
-import { ProtocolFSM } from './ProtocolFSM';
+import { FSMProtocolAPI } from './ProtocolFSM/types';
+import { ProtocolFSM } from './ProtocolFSM/ProtocolFSM';
 import type { AuthProvider } from './types';
 import { IdleState } from './ProtocolFSM/state/IdleState';
 
 export class ProtocolAPI {
 	static readonly retryTimeout = 1000;
-	private readonly fsm: ProtocolFSM;
+	private readonly fsm: FSMProtocolAPI;
 	constructor(authProvider: AuthProvider) {
 		this.fsm = new ProtocolFSM(authProvider);
 	}
@@ -13,34 +14,31 @@ export class ProtocolAPI {
 		this.fsm.emitEvent("connect");
 	}
 
-get<T>(data: T) {
-	let promise = new Promise((resolve, reject) => {
-		let interval: NodeJS.Timeout;
-		let processGetRequest = async () => {
-			console.log("GET")
+	async get<T>(data: T): Promise<unknown> {
+		while (true) {
+			console.log("GET") // eslint-disable-line
 			try {
-				let result = await this.fsm.send<T>(data, "get")
+				const result = await this.fsm.send<T>(data, "get");
 				if (result instanceof Error) throw result;
-				clearInterval(interval);
-				resolve(result);
+				return result;
 			} catch {
-				if (this.fsm.state instanceof IdleState) resolve(new Error("connection closed"));
-				else interval = setTimeout(processGetRequest, 1000);
+				if (this.fsm.state instanceof IdleState)
+					throw new Error("connection closed");
+				await new Promise(resolve => setTimeout(resolve, 1000));
 			}
-			return processGetRequest;
 		}
-		processGetRequest()
-	});
-	
-	return promise;  
-}
+	}
 
-	post<T>(data: T) {
-		console.log("POST")
-		return this.fsm.send<T>(data, "post"); 
+	async post<T>(data: T) {
+		console.log("POST") // eslint-disable-line
+		return await this.fsm.send<T>(data, "post"); 
 	}
 
 	disconnect() {
 		this.fsm.emitEvent("disconnect");
+	}
+
+	onAuthentificated() {
+		this.fsm.emitEvent("authentificated");
 	}
 }

@@ -1,12 +1,12 @@
 import type { AuthProvider } from '../types';
-import { State, FSM } from './types';
+import { State, FSMStateAPI, FSMProtocolAPI } from './types';
 import { Event } from './Event';
 import { IdleState } from './state/IdleState';
 import { ConnectedState } from './state/ConnectedState';
 import { WebSocketTransport } from '../WebSocketTransport';
 
 
-export class ProtocolFSM implements FSM {
+export class ProtocolFSM implements FSMStateAPI, FSMProtocolAPI {
 	authProvider: AuthProvider;
 	private currentState: State;
 	private futureState?: State;
@@ -20,7 +20,7 @@ export class ProtocolFSM implements FSM {
 	constructor(authProvider: AuthProvider) {
 		this.authProvider = authProvider;
 		this.currentState = new IdleState(this);
-		console.log(`[FSM] Entering ${this.state.constructor.name}`) // eslint-disable-line
+		console.log(`[FSM] Entering ${this.state.name}`) // eslint-disable-line
 		if (this.state.enter) this.state.enter();
 	}
 
@@ -30,7 +30,8 @@ export class ProtocolFSM implements FSM {
 
 		console.log(`[FSM] Leaving ${this.state.name} state`) // eslint-disable-line
 		if (this.state.leave) this.state.leave();
-		this.currentState = this.futureState!;
+		if (!this.futureState) throw new Error("[FSM] no state to process");
+		this.currentState = this.futureState;
 		console.log(`[FSM] Entering ${this.state.name} state`) // eslint-disable-line
 		if (this.state.enter) this.state.enter();
 
@@ -44,9 +45,8 @@ export class ProtocolFSM implements FSM {
  	}
 
  	event(event: Event) {
- 		if (event.state !== this.state.name) {
- 			console.warn(`incorrect event ${event.state}${event.data} for state ${this.state.name}`);
- 			return;
+ 		if (event.stateId !== this.state.id) {
+ 			console.warn(`event ${event.data} id does not match ${this.state.name} state id`);
  		}
 
  		setTimeout(() => {
@@ -56,7 +56,7 @@ export class ProtocolFSM implements FSM {
  	}
 
  	emitEvent(data: string) {
- 		this.event(new Event(this.state, data));
+ 		this.event(new Event(this.state.id, data));
  	}
 
 	async send<T>(data: T, method: "get" | "post") {

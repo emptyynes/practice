@@ -7,7 +7,7 @@ export class WebSocketTransport {
 	requestsMap = new Map<number, (value: unknown) => void>();
 
 	constructor(host: string, channelId: string) {
-		this.socket = new WebSocket(`ws://${host}${endpoints.ws}${channelId}`);
+		this.socket = new WebSocket(`ws://${host}${endpoints.ws}/${channelId}`);
 
 		this.socket.addEventListener("message", (event) => {
 			let response: WebSocketResponse<any> = JSON.parse(event.data.toString());
@@ -31,7 +31,7 @@ export class WebSocketTransport {
 	}
 
 	send<T>(data: T, method: "get" | "post") {
-		if (this.socket.readyState !== WebSocket.OPEN) throw new Error("WebSocket is not open")
+		if (this.socket.readyState !== WebSocket.OPEN) throw new Error("WebSocket is not open");
 		return new Promise((resolve, reject) => {
 			let request: WebSocketRequest<T> = {
 				id: this.latestRequestId++,

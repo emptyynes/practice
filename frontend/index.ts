@@ -1,17 +1,33 @@
 import { ProtocolAPI } from './Protocol/ProtocolAPI';
-import { SimpleAuthProvider } from './auth';
+import { JWTAuthProvider } from './JWTAuthProvider';
 
-let auth = new SimpleAuthProvider();
+export const auth = new JWTAuthProvider();
 
 export const api = new ProtocolAPI(auth);
 
-api.connect()
-setTimeout(async () => {
-	console.log(await api.get("testget"));
-}, 1000)
-setTimeout(async () => {
-	console.log(await api.post("testpost"));
-}, 2000)
-// setTimeout(() => {
-// 	api.disconnect()
-// }, 1200)
+auth.init(() => {
+	api.onAuthentificated();
+}, () => {
+	console.log("auth failed");
+}).then(() => {
+	api.connect();
+
+	setTimeout(async () => {
+		try {
+			console.log(await api.get("testget"));
+		} catch {
+			console.log("catched");
+		};
+	}, 1000);
+	setTimeout(async () => {
+		try {
+			console.log(await api.post("testpost"));
+		} catch {
+			console.log("catched");
+		};
+	}, 2000);
+
+	// setTimeout(async () => {
+		// api.disconnect()
+	// }, 1200)
+});
