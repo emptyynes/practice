@@ -1,43 +1,51 @@
 import { State } from '../types';
 import { Event } from '../Event';
+import { EventType } from '../EventType';
 import { FSMStateAPI } from '../types';
-import { PingMonitor } from '../PingMonitor';
 import { IdleState } from './IdleState';
 import { ReconnectDelayState } from './ReconnectDelayState';
 
+
 export class ConnectedState implements State {
 	private readonly fsm: FSMStateAPI;
-	private pinger?: PingMonitor;
 	readonly name = "Connected";
-	id: number;
 	
+	private lastPingTime = Date.now();
+
 	constructor(fsm: FSMStateAPI) {
 		this.fsm = fsm;
-		this.id = fsm.state.id + 1;
 	}
 
 	private socketCloseEventHandler = () => {
-		this.fsm.emitEvent("broken connection");
+		this.fsm.emitEvent(EventType.FAIL);
 	};
 
 	enter() {
-		this.pinger = new PingMonitor(this.fsm);
-
-		this.fsm.wst!.socket.addEventListener("close", this.socketCloseEventHandler);
+		this.fsm.emitEvent(EventType.SEND_PING);
+		this.fsm.ctx.webSocketTransport!.socket.addEventListener("close", this.socketCloseEventHandler);
 	}
 
 	handle(event: Event) {
-		if (event.data === "disconnect") {
-			this.fsm.wst!.socket.removeEventListener("close", this.socketCloseEventHandler);
+		if (event.type === EventType.DISCONNECT) {
 			this.fsm.setState(new IdleState(this.fsm));
-		} else if (event.data === "broken connection") {
-			this.fsm.wst!.socket.removeEventListener("close", this.socketCloseEventHandler);
+		} else if (event.type === EventType.FAIL) {
 			this.fsm.setState(new ReconnectDelayState(this.fsm));
+		} else if (event.type === EventType.SEND_PING) {
+			this.fsm.ctx.webSocketTransport!.send<string>("ping", "get", 3000)
+				.then(success => this.fsm.emitEvent(EventType.PING_SUCCESS))
+				.catch(failed => this.fsm.emitEvent(EventType.FAIL))
+		} else if (event.type === EventType.PING_SUCCESS) {
+			console.log(`[PING] ${Date.now() - this.lastPingTime}`)
+			this.lastPingTime = Date.now();
+			this.fsm.startEventTimer(EventType.SEND_PING, 1000);
 		}
 	}
 
 	leave() {
-		this.pinger!.stop();
-		this.fsm.wst!.disconnect();
+		if (this.fsm.ctx.webSocketTransport) {
+			this.fsm.ctx.webSocketTransport.socket.removeEventListener("close", this.socketCloseEventHandler);
+			this.fsm.ctx.webSocketTransport.disconnect();
+			this.fsm.ctx.webSocketTransport = undefined;
+		} else console.error("fsm.ctx.webSocketTransport does not exist when leaving ConnectedState")
 	}
 }

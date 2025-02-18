@@ -2,6 +2,8 @@ import { FSMProtocolAPI } from './ProtocolFSM/types';
 import { ProtocolFSM } from './ProtocolFSM/ProtocolFSM';
 import type { AuthProvider } from './types';
 import { IdleState } from './ProtocolFSM/state/IdleState';
+import { EventType } from './ProtocolFSM/EventType';
+
 
 export class ProtocolAPI {
 	static readonly retryTimeout = 1000;
@@ -11,7 +13,7 @@ export class ProtocolAPI {
 	}
 
 	connect() {
-		this.fsm.emitEvent("connect");
+		this.fsm.emitEvent(EventType.CONNECT);
 	}
 
 	async get<T>(data: T): Promise<unknown> {
@@ -35,10 +37,10 @@ export class ProtocolAPI {
 	}
 
 	disconnect() {
-		this.fsm.emitEvent("disconnect");
+		this.fsm.emitEvent(EventType.DISCONNECT);
 	}
 
 	onAuthentificated() {
-		this.fsm.emitEvent("authentificated");
+		this.fsm.emitEvent(EventType.AUTHENTIFICATED);
 	}
 }

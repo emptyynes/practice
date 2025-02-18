@@ -24,8 +24,10 @@ webSocketServer.on('connection', function connection(webSocket) {
 });
 
 app.get('/api/wsendpoint', (request, response) => {
-	let cookies = cookie.parse(request.headers.cookie || "");
-	jwt.verify(cookies.accessToken || "", "secret1234", (error, decoded) => {
+	if (!request.headers.authentication) {
+		return response.status(401).send("Unauthorized");
+	}
+	jwt.verify(request.headers.authentication.toString() || "", "secret1234", (error, decoded) => {
 		if (error) response.status(401).send("Unauthorized");
 		else {
 			let uid = `${Math.floor(Math.random() * 1e10)}`;
@@ -41,24 +43,15 @@ app.get('/api/wsendpoint', (request, response) => {
 const server = app.listen(port);
 
 server.on('upgrade', (request, socket, head) => {
-	let cookies = cookie.parse(request.headers.cookie || "");
-	jwt.verify(cookies.accessToken || "", "secret1234", (error, decoded) => {
-		if (error) {
-			socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
-			socket.destroy();
-			return;
-		} else {
-			let uid = request.url!.substring("/websocket/".length);
-			if (!endpoints.get(uid)) {
-				socket.write('HTTP/1.1 404 Not Found\r\n\r\n');
-				socket.destroy();
-				return;
-			}
+	let uid = request.url!.substring("/websocket/".length);
+	if (!endpoints.get(uid)) {
+		socket.write('HTTP/1.1 404 Not Found\r\n\r\n');
+		socket.destroy();
+		return;
+	}
 
-			webSocketServer.handleUpgrade(request, socket, head, (socket) => {
-				webSocketServer.emit('connection', socket, request);
-			});
-		};
+	webSocketServer.handleUpgrade(request, socket, head, (socket) => {
+		webSocketServer.emit('connection', socket, request);
 	});
 });
 

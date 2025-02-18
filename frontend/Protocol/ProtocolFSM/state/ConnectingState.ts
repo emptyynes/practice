@@ -1,5 +1,6 @@
 import { State } from '../types';
 import { Event } from '../Event';
+import { EventType } from '../EventType';
 import { FSMStateAPI } from '../types';
 import { WebSocketTransport } from '../../WebSocketTransport';
 import { ConnectedState } from './ConnectedState';
@@ -10,34 +11,40 @@ import { endpoints } from '../../config';
 export class ConnectingState implements State {
 	private readonly fsm: FSMStateAPI;
 	readonly name = "Connecting";
-	id: number;
 	
 	constructor(fsm: FSMStateAPI) {
 		this.fsm = fsm;
-		this.id = fsm.state.id + 1;
 	}
 
 	enter() {
-		fetch(endpoints.requestWSEndpoint).then(response => {
+		if (!localStorage.accessToken) {
+			this.fsm.emitEvent(EventType.NOT_CONNECTED);
+			return;
+		}
+		fetch(endpoints.requestWSEndpoint, {
+			headers: {
+				Authentication: localStorage.accessToken
+			}
+		}).then(response => {
 			if (!response.ok) {
-				this.fsm.emitEvent("fail");
+				this.fsm.emitEvent(EventType.NOT_CONNECTED);
 				return;
 			}
 			response.text().then((uid: string) => {
-				this.fsm.wst = new WebSocketTransport(window.location.host, uid);
+				this.fsm.ctx.webSocketTransport = new WebSocketTransport(window.location.host, uid);
 
-				this.fsm.wst.socket.addEventListener("open", (_) => {
-					this.fsm.emitEvent("connect");
+				this.fsm.ctx.webSocketTransport.socket.addEventListener("open", (_) => {
+					this.fsm.emitEvent(EventType.CONNECTED);
 				});
 			});
 		});
 	}
 
 	handle(event: Event) {
-		if (event.data === "connect")
+		if (event.type === EventType.CONNECTED)
 			this.fsm.setState(new ConnectedState(this.fsm));
-		else if (event.data === "fail") {
-			if (this.fsm.authProvider.isAuthentificated)
+		else if (event.type === EventType.NOT_CONNECTED) {
+			if (this.fsm.ctx.authProvider.isAuthentificated)
 				this.fsm.setState(new ReconnectDelayState(this.fsm));
 			else
 				this.fsm.setState(new AuthentificatingState(this.fsm));

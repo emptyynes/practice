@@ -10,14 +10,20 @@ export class JWTAuthProvider implements AuthProvider {
 	async init(authSuccessCallback: () => void, authFailedCallback: () => void) {
 		if (await this.check())
 			return true;
-		await this.refresh();
+		try {
+			await this.refresh();
+		} catch {}
 		return await this.check();
 		this.authSuccessCallback = authSuccessCallback;
 		this.authFailedCallback = authFailedCallback;
 	}
 
 	private async check() {
-		let response = await fetch(`${endpoints.auth}/check`);
+		let response = await fetch(`${endpoints.auth}/check`, {
+			headers: {
+				Authentication: localStorage.accessToken
+			}
+		});
 		this.isAuthentificated = response.ok;
 		return this.isAuthentificated;
 	}
