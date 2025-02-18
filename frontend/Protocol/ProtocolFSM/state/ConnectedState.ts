@@ -9,9 +9,8 @@ import { ReconnectDelayState } from './ReconnectDelayState';
 export class ConnectedState implements State {
 	private readonly fsm: FSMStateAPI;
 	readonly name = "Connected";
-	
 	private lastPingTime = Date.now();
-
+	
 	constructor(fsm: FSMStateAPI) {
 		this.fsm = fsm;
 	}
@@ -33,9 +32,9 @@ export class ConnectedState implements State {
 		} else if (event.type === EventType.SEND_PING) {
 			this.fsm.ctx.webSocketTransport!.send<string>("ping", "get", 3000)
 				.then(success => this.fsm.emitEvent(EventType.PING_SUCCESS))
-				.catch(failed => this.fsm.emitEvent(EventType.FAIL))
+				.catch(failed => this.fsm.emitEvent(EventType.FAIL));
 		} else if (event.type === EventType.PING_SUCCESS) {
-			console.log(`[PING] ${Date.now() - this.lastPingTime}`)
+			console.log(`[PING] ${Date.now() - this.lastPingTime}`) // eslint-disable-line
 			this.lastPingTime = Date.now();
 			this.fsm.startEventTimer(EventType.SEND_PING, 1000);
 		}
@@ -46,6 +45,8 @@ export class ConnectedState implements State {
 			this.fsm.ctx.webSocketTransport.socket.removeEventListener("close", this.socketCloseEventHandler);
 			this.fsm.ctx.webSocketTransport.disconnect();
 			this.fsm.ctx.webSocketTransport = undefined;
-		} else console.error("fsm.ctx.webSocketTransport does not exist when leaving ConnectedState")
+		} else {
+			console.error("fsm.ctx.webSocketTransport does not exist when leaving ConnectedState");
+		}
 	}
 }

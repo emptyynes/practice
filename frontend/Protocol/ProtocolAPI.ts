@@ -8,6 +8,7 @@ import { EventType } from './ProtocolFSM/EventType';
 export class ProtocolAPI {
 	static readonly retryTimeout = 1000;
 	private readonly fsm: FSMProtocolAPI;
+	
 	constructor(authProvider: AuthProvider) {
 		this.fsm = new ProtocolFSM(authProvider);
 	}
@@ -21,11 +22,15 @@ export class ProtocolAPI {
 			console.log("GET") // eslint-disable-line
 			try {
 				const result = await this.fsm.send<T>(data, "get");
-				if (result instanceof Error) throw result;
-				return result;
+				if (result instanceof Error) {
+					throw result;
+				} else {
+					return result;
+				}
 			} catch {
-				if (this.fsm.state instanceof IdleState)
+				if (this.fsm.state instanceof IdleState) {
 					throw new Error("connection closed");
+				}
 				await new Promise(resolve => setTimeout(resolve, 1000));
 			}
 		}

@@ -14,7 +14,6 @@ export class ProtocolFSM implements FSM, FSMStateAPI, FSMProtocolAPI {
 	private isProcessingState: boolean = false;
 	private stateId: number = 0;
 	public ctx: SharedContext;
-
 	public get state() {
 		return this.currentState;
 	}
@@ -23,20 +22,29 @@ export class ProtocolFSM implements FSM, FSMStateAPI, FSMProtocolAPI {
 		this.ctx = new SharedContext(authProvider);
 		this.currentState = new IdleState(this);
 		console.log(`[FSM] Entering ${this.state.name}`) // eslint-disable-line
-		if (this.state.enter) this.state.enter();
+		if (this.state.enter) {this.state.enter();}
 	}
 
 	private processNextState() {
-		if (this.isProcessingState) return;
+		if (this.isProcessingState) {
+			return;
+		}
 		this.isProcessingState = true;
 
 		console.log(`[FSM] Leaving ${this.state.name} state`) // eslint-disable-line
-		if (this.state.leave) this.state.leave();
+		if (this.state.leave) {
+			this.state.leave();
+		}
+		
 		this.stateId++;
-		if (!this.futureState) throw new Error("[FSM] no state to process");
+		if (!this.futureState) {
+			throw new Error("[FSM] no state to process");
+		}
 		this.currentState = this.futureState;
 		console.log(`[FSM] Entering ${this.state.name} state`) // eslint-disable-line
-		if (this.state.enter) this.state.enter();
+		if (this.state.enter) {
+			this.state.enter();
+		}
 
 		this.isProcessingState = false;
 	}
@@ -54,7 +62,7 @@ export class ProtocolFSM implements FSM, FSMStateAPI, FSMProtocolAPI {
 
  		setTimeout(() => {
 			console.log(`[FSM] Handling ${event.type} at ${this.state.constructor.name}`) // eslint-disable-line
- 			if (this.state.handle) this.state.handle(event);
+ 			if (this.state.handle) {this.state.handle(event);}
  		}, 0);
  	}
 
@@ -70,9 +78,10 @@ export class ProtocolFSM implements FSM, FSMStateAPI, FSMProtocolAPI {
  	}
 
 	async send<T>(data: T, method: "get" | "post") {
-		if (this.state instanceof ConnectedState)
+		if (this.state instanceof ConnectedState) {
 			return this.ctx.webSocketTransport!.send<T>(data, method);
-		else 
+		} else {
 			throw new Error(`cannot send data in ${this.state.constructor.name}`);
+		}
 	}
 }

@@ -5,6 +5,7 @@ import { FSMStateAPI } from '../types';
 import { IdleState } from './IdleState';
 import { ConnectingState } from './ConnectingState';
 
+
 export class ReconnectDelayState implements State {
 	private readonly fsm: FSMStateAPI;
 	readonly name = "ReconnectDelay";
@@ -18,7 +19,8 @@ export class ReconnectDelayState implements State {
 	}
 
 	handle(event: Event) {
-		if (event.type === EventType.RECONNECT)
+		if (event.type === EventType.RECONNECT) {
 			this.fsm.setState(new ConnectingState(this.fsm));
+		}
 	}
 }

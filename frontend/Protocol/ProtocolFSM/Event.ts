@@ -1,9 +1,11 @@
 import type { State } from './types';
 import type { EventType } from './EventType';
 
+
 type constructorArgs = [EventType];
 type constructorArgsWithId = [number, EventType];
 type constructorArgsWithIdAndPayload<T> = [number, EventType, T];
+
 
 export class Event<T = void> {
 	stateId?: number;
@@ -23,6 +25,8 @@ export class Event<T = void> {
 			this.stateId = args[0];
 			this.type = args[1];
 			this.payload = args[2];
-		} else throw new Error(`illegal arguments to Event constructor: ${args}`)
+		} else {
+			throw new Error(`illegal arguments to Event constructor: ${args}`);
+		}
 	}
 }

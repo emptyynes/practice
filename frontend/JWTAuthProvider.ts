@@ -8,8 +8,10 @@ export class JWTAuthProvider implements AuthProvider {
 	private authFailedCallback?: () => void = undefined;
 
 	async init(authSuccessCallback: () => void, authFailedCallback: () => void) {
-		if (await this.check())
+		if (await this.check()) {
 			return true;
+		}
+
 		try {
 			await this.refresh();
 		} catch {}
@@ -39,7 +41,9 @@ export class JWTAuthProvider implements AuthProvider {
 
 	async auth(username: string, password: string) {
 		if (localStorage.refreshToken) {
-			if (this.authSuccessCallback) this.authSuccessCallback();
+			if (this.authSuccessCallback) {
+				this.authSuccessCallback();
+			}
 			return await this.refresh();
 		} else {
 			let refreshTokenRequest = await fetch(`${endpoints.auth}/login`, {
@@ -49,11 +53,15 @@ export class JWTAuthProvider implements AuthProvider {
 			});
 			if (!refreshTokenRequest.ok) {
 				localStorage.auth = false;
-				if (this.authFailedCallback) this.authFailedCallback();
+				if (this.authFailedCallback) {
+					this.authFailedCallback();
+				}
 				return;
 			}
 			localStorage.refreshToken = JSON.parse(await refreshTokenRequest.text()).token;
-			if (this.authSuccessCallback) this.authSuccessCallback();
+			if (this.authSuccessCallback) {
+				this.authSuccessCallback();
+			}
 			await this.refresh();
 		}
 	}

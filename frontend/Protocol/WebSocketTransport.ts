@@ -1,7 +1,9 @@
 import type { WebSocketResponse, WebSocketRequest } from './types.ts';
 import { endpoints } from './config';
 
+
 export class WebSocketTransport {
+	private connected: boolean = true;
 	socket: WebSocket;
 	latestRequestId = 0;
 	requestsMap = new Map<number, [(value: unknown) => void, NodeJS.Timeout]>();
@@ -16,7 +18,7 @@ export class WebSocketTransport {
 			this.requestsMap.delete(response.id);
 			resolver(response.payload);
 		}
-	}
+	};
 
 	constructor(host: string, channelId: string) {
 		this.socket = new WebSocket(`ws://${host}${endpoints.ws}/${channelId}`);
@@ -25,9 +27,11 @@ export class WebSocketTransport {
 	}
 
 	disconnect() {
+		this.connected = false;
 		this.socket.removeEventListener("message", this.socketMessageEventHandler);
-		if (this.socket.readyState === WebSocket.OPEN)
+		if (this.socket.readyState === WebSocket.OPEN) {
 			this.socket.close();
+		}
 		else if (this.socket.readyState === WebSocket.CONNECTING) {
 			this.socket.addEventListener("open", (_) => {
 				this.socket.close();
@@ -36,7 +40,12 @@ export class WebSocketTransport {
 	}
 
 	send<T>(data: T, method: "get" | "post", timeout?: number) {
-		if (this.socket.readyState !== WebSocket.OPEN) throw new Error("WebSocket is not open");
+		if (!this.connected) {
+			throw new Error("WebSocketTransport was disconnected");
+		}
+		if (this.socket.readyState !== WebSocket.OPEN) {
+			throw new Error("WebSocket is not open");
+		}
 		return new Promise((resolve, reject) => {
 			let request: WebSocketRequest<T> = {
 				id: this.latestRequestId++,
@@ -50,8 +59,11 @@ export class WebSocketTransport {
 
 			let timer = setTimeout(() => {
 				this.requestsMap.delete(request.id);
-				console.log(`timeout ${timeout}`)
-				reject(new Error(`timeout ${data}`));
+				if (this.connected) {
+					reject(new Error(`timeout ${data}`));
+				} else {
+					resolve(undefined);
+				}
 			}, timeout);
 			
 			this.requestsMap.set(request.id, [ resolve, timer ]);

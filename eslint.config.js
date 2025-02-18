@@ -14,7 +14,8 @@ module.exports = [
 			}
         },
 		rules: {
-			semi: "warn"
+			semi: "warn",
+			curly: "warn"
 		}
 	}
 ]

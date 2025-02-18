@@ -8,6 +8,7 @@ import { ReconnectDelayState } from './ReconnectDelayState';
 import { AuthentificatingState } from './AuthentificatingState';
 import { endpoints } from '../../config';
 
+
 export class ConnectingState implements State {
 	private readonly fsm: FSMStateAPI;
 	readonly name = "Connecting";
@@ -21,6 +22,7 @@ export class ConnectingState implements State {
 			this.fsm.emitEvent(EventType.NOT_CONNECTED);
 			return;
 		}
+
 		fetch(endpoints.requestWSEndpoint, {
 			headers: {
 				Authentication: localStorage.accessToken
@@ -30,6 +32,7 @@ export class ConnectingState implements State {
 				this.fsm.emitEvent(EventType.NOT_CONNECTED);
 				return;
 			}
+
 			response.text().then((uid: string) => {
 				this.fsm.ctx.webSocketTransport = new WebSocketTransport(window.location.host, uid);
 
@@ -41,13 +44,13 @@ export class ConnectingState implements State {
 	}
 
 	handle(event: Event) {
-		if (event.type === EventType.CONNECTED)
+		if (event.type === EventType.CONNECTED) {
 			this.fsm.setState(new ConnectedState(this.fsm));
-		else if (event.type === EventType.NOT_CONNECTED) {
-			if (this.fsm.ctx.authProvider.isAuthentificated)
-				this.fsm.setState(new ReconnectDelayState(this.fsm));
-			else
-				this.fsm.setState(new AuthentificatingState(this.fsm));
+		} else if (event.type === EventType.NOT_CONNECTED) {
+			this.fsm.setState(
+				this.fsm.ctx.authProvider.isAuthentificated ?
+				new ReconnectDelayState(this.fsm) : new AuthentificatingState(this.fsm)
+			);
 		}
 	}
 }

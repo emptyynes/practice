@@ -5,6 +5,7 @@ import { FSMStateAPI } from '../types';
 import { ConnectingState } from './ConnectingState';
 import { AuthentificatingState } from './AuthentificatingState';
 
+
 export class IdleState implements State {
 	private readonly fsm: FSMStateAPI;
 	readonly name = "Idle";
@@ -15,10 +16,10 @@ export class IdleState implements State {
 
 	handle(event: Event) {
 		if (event.type === EventType.CONNECT) {
-			if (this.fsm.ctx.authProvider.isAuthentificated)
-				this.fsm.setState(new ConnectingState(this.fsm));
-			else
-				this.fsm.setState(new AuthentificatingState(this.fsm));
+			this.fsm.setState(
+				this.fsm.ctx.authProvider.isAuthentificated ?
+				new ConnectingState(this.fsm) : new AuthentificatingState(this.fsm)
+			);
 		}
 	}
 }
