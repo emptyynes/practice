@@ -14,10 +14,10 @@ export interface State {
 }
 
 export interface FSM {
-	emitEvent: (type: EventType) => void;
+	emitEvent: (type: EventType, payload?: unknown) => void;
 	handleEvent: (event: Event) => void;
 	state: State;
-	startEventTimer: (type: EventType, time: number) => void;
+	startEventTimer: (type: EventType, time: number, payload?: unknown) => void;
 	setState: (state: State) => void;
 }
 

@@ -9,34 +9,46 @@ import { ReconnectDelayState } from './ReconnectDelayState';
 export class ConnectedState implements State {
 	private readonly fsm: FSMStateAPI;
 	readonly name = "Connected";
-	private lastPingTime = Date.now();
 	
 	constructor(fsm: FSMStateAPI) {
 		this.fsm = fsm;
 	}
 
 	private socketCloseEventHandler = () => {
-		this.fsm.emitEvent(EventType.FAIL);
+		this.fsm.emitEvent(EventType.FAIL, { reason: "socket closed" });
 	};
 
 	enter() {
-		this.fsm.emitEvent(EventType.SEND_PING);
+		this.fsm.emitEvent(EventType.SEND_PING, { time: Date.now() });
 		this.fsm.ctx.webSocketTransport!.socket.addEventListener("close", this.socketCloseEventHandler);
 	}
 
 	handle(event: Event) {
-		if (event.type === EventType.DISCONNECT) {
-			this.fsm.setState(new IdleState(this.fsm));
-		} else if (event.type === EventType.FAIL) {
-			this.fsm.setState(new ReconnectDelayState(this.fsm));
-		} else if (event.type === EventType.SEND_PING) {
-			this.fsm.ctx.webSocketTransport!.send<string>("ping", "get", 3000)
-				.then(success => this.fsm.emitEvent(EventType.PING_SUCCESS))
-				.catch(failed => this.fsm.emitEvent(EventType.FAIL));
-		} else if (event.type === EventType.PING_SUCCESS) {
-			console.log(`[PING] ${Date.now() - this.lastPingTime}`) // eslint-disable-line
-			this.lastPingTime = Date.now();
-			this.fsm.startEventTimer(EventType.SEND_PING, 1000);
+		switch (event.type) {
+			case EventType.DISCONNECT: {
+				this.fsm.setState(new IdleState(this.fsm));
+				break;
+			}
+			case EventType.FAIL: {
+				console.error(event.payload.reason);
+				this.fsm.setState(new ReconnectDelayState(this.fsm));
+				break;
+			}
+			case EventType.SEND_PING: {
+				this.fsm.ctx.webSocketTransport!.send<string>("ping", "get", 3000)
+					.then(success => {
+						console.log(`[PING] time between ping: ${(Date.now() - event.payload.time) / 1000}s`) // eslint-disable-line
+						this.fsm.emitEvent(EventType.PING_SUCCESS);
+					}).catch(failed => {
+						console.warn("ping failed") // eslint-disable-line
+						this.fsm.emitEvent(EventType.FAIL, { reason: "ping failed" });
+					});
+				break;
+			}
+			case EventType.PING_SUCCESS: {
+				this.fsm.startEventTimer(EventType.SEND_PING, 1000, { time: Date.now() });				
+				break;
+			}
 		}
 	}
 

@@ -45,7 +45,7 @@ export class ProtocolAPI {
 		this.fsm.emitEvent(EventType.DISCONNECT);
 	}
 
-	onAuthentificated() {
-		this.fsm.emitEvent(EventType.AUTHENTIFICATED);
+	onAuthenticated() {
+		this.fsm.emitEvent(EventType.AUTHENTICATED);
 	}
 }

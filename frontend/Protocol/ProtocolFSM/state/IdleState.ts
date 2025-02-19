@@ -17,7 +17,7 @@ export class IdleState implements State {
 	handle(event: Event) {
 		if (event.type === EventType.CONNECT) {
 			this.fsm.setState(
-				this.fsm.ctx.authProvider.isAuthentificated ?
+				this.fsm.ctx.authProvider.isAuthenticated ?
 				new ConnectingState(this.fsm) : new AuthentificatingState(this.fsm)
 			);
 		}

@@ -1,7 +1,7 @@
 import type { AuthProvider } from '../types';
-import type { EventType } from './EventType';
 import { State, FSM, FSMStateAPI, FSMProtocolAPI } from './types';
-import { Event } from './Event';
+import { Event, createEvent } from './Event';
+import { EventType } from './EventType';
 import { SharedContext } from './SharedContext';
 import { IdleState } from './state/IdleState';
 import { ConnectedState } from './state/ConnectedState';
@@ -66,20 +66,24 @@ export class ProtocolFSM implements FSM, FSMStateAPI, FSMProtocolAPI {
  		}, 0);
  	}
 
- 	emitEvent(type: EventType) {
- 		this.handleEvent(new Event(this.stateId, type));
+ 	emitEvent(type: EventType, payload?: unknown) {
+ 		this.handleEvent(createEvent(type, this.stateId, payload));
  	}
 
-	startEventTimer(type: EventType, time: number) {
+	startEventTimer(type: EventType, time: number, payload?: unknown) {
 		console.log(`[FSM] Set timer for ${type} event ${time / 1000}s`) // eslint-disable-line
  		setTimeout(() => {
- 			this.emitEvent(type);
+ 			this.emitEvent(type, payload);
  		}, time);
  	}
 
 	async send<T>(data: T, method: "get" | "post") {
 		if (this.state instanceof ConnectedState) {
-			return this.ctx.webSocketTransport!.send<T>(data, method);
+			try {
+				return await this.ctx.webSocketTransport!.send<T>(data, method);
+			} catch (error) {
+				this.emitEvent(EventType.FAIL, error);
+			}
 		} else {
 			throw new Error(`cannot send data in ${this.state.constructor.name}`);
 		}

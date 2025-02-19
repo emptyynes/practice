@@ -14,7 +14,7 @@ export class AuthentificatingState implements State {
 	}
 
 	handle(event: Event) {
-		if (event.type === EventType.AUTHENTIFICATED) {
+		if (event.type === EventType.AUTHENTICATED) {
 			this.fsm.setState(new ConnectingState(this.fsm));
 		}
 	}

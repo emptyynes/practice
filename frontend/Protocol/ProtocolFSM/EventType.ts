@@ -7,5 +7,5 @@ export enum EventType {
 	FAIL = "broken connection",
 	PING_SUCCESS = "ping success",
 	SEND_PING = "time to send ping",
-	AUTHENTIFICATED = "user authentificated",
+	AUTHENTICATED = "user authenticated",
 }

@@ -6,7 +6,7 @@ export const auth = new JWTAuthProvider();
 export const api = new ProtocolAPI(auth);
 
 auth.init(() => {
-	api.onAuthentificated();
+	api.onAuthenticated();
 }, () => {
 	console.log("auth failed");
 }).then(() => {

@@ -48,7 +48,7 @@ export class ConnectingState implements State {
 			this.fsm.setState(new ConnectedState(this.fsm));
 		} else if (event.type === EventType.NOT_CONNECTED) {
 			this.fsm.setState(
-				this.fsm.ctx.authProvider.isAuthentificated ?
+				this.fsm.ctx.authProvider.isAuthenticated ?
 				new ReconnectDelayState(this.fsm) : new AuthentificatingState(this.fsm)
 			);
 		}
