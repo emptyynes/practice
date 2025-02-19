@@ -59,7 +59,7 @@ export interface ReconnectEvent extends BaseEvent {
 
 export interface FailEvent extends BaseEvent {
 	type: EventType.FAIL;
-	payload: { reason: string };
+	payload: { reason: string; };
 }
 
 export interface PingSuccessEvent extends BaseEvent {
@@ -68,7 +68,7 @@ export interface PingSuccessEvent extends BaseEvent {
 
 export interface SendPingEvent extends BaseEvent {
 	type: EventType.SEND_PING;
-	payload: { time: number };
+	payload: { time: number; };
 }
 
 export interface AuthenticatedEvent extends BaseEvent {
@@ -76,14 +76,12 @@ export interface AuthenticatedEvent extends BaseEvent {
 }
 
 export type Event = 
-	ConnectEvent		| DisconnectEvent	| ConnectedEvent		|
-	NotConnectedEvent	| ReconnectEvent	| FailEvent 			|
-	PingSuccessEvent	| SendPingEvent		| AuthenticatedEvent
+	ConnectEvent		| DisconnectEvent	| ConnectedEvent |
+	NotConnectedEvent	| ReconnectEvent	| FailEvent |
+	PingSuccessEvent	| SendPingEvent 	| AuthenticatedEvent
 
 export function createEvent(type: EventType, stateId: number, payload?: unknown): Event {
-	let event: Event = { type: type, stateId: stateId } as Event;
-	if (payload) {
-		event.payload = payload;
-	}
+	let event : Event = { type: type, stateId: stateId } as Event;
+	if (payload) event.payload = payload;
 	return event;
 }

@@ -29,6 +29,10 @@ export class ProtocolFSM implements FSM, FSMStateAPI, FSMProtocolAPI {
 		if (this.isProcessingState) {
 			return;
 		}
+		if (!this.futureState) {
+			throw new Error("[FSM] no state to process");
+		}
+
 		this.isProcessingState = true;
 
 		console.log(`[FSM] Leaving ${this.state.name} state`) // eslint-disable-line
@@ -37,10 +41,8 @@ export class ProtocolFSM implements FSM, FSMStateAPI, FSMProtocolAPI {
 		}
 		
 		this.stateId++;
-		if (!this.futureState) {
-			throw new Error("[FSM] no state to process");
-		}
 		this.currentState = this.futureState;
+		
 		console.log(`[FSM] Entering ${this.state.name} state`) // eslint-disable-line
 		if (this.state.enter) {
 			this.state.enter();
@@ -53,29 +55,29 @@ export class ProtocolFSM implements FSM, FSMStateAPI, FSMProtocolAPI {
 		console.log(`[FSM] Moving from ${this.state.name} state to ${state.name}`) // eslint-disable-line
 		this.futureState = state;
 		this.processNextState();
- 	}
+	}
 
- 	handleEvent(event: Event) {
- 		if ((event.stateId) && (event.stateId !== this.stateId)) {
- 			console.warn(`event ${event.type} id does not match ${this.state.name} state id`);
- 		}
+	handleEvent(event: Event) {
+		if ((event.stateId) && (event.stateId !== this.stateId)) {
+			console.warn(`event ${event.type} id does not match ${this.state.name} state id`);
+		}
 
- 		setTimeout(() => {
+		setTimeout(() => {
 			console.log(`[FSM] Handling ${event.type} at ${this.state.constructor.name}`) // eslint-disable-line
- 			if (this.state.handle) {this.state.handle(event);}
- 		}, 0);
- 	}
+			if (this.state.handle) {this.state.handle(event);}
+		}, 0);
+	}
 
- 	emitEvent(type: EventType, payload?: unknown) {
- 		this.handleEvent(createEvent(type, this.stateId, payload));
- 	}
+	emitEvent(type: EventType, payload?: unknown) {
+		this.handleEvent(createEvent(type, this.stateId, payload));
+	}
 
 	startEventTimer(type: EventType, time: number, payload?: unknown) {
 		console.log(`[FSM] Set timer for ${type} event ${time / 1000}s`) // eslint-disable-line
- 		setTimeout(() => {
- 			this.emitEvent(type, payload);
- 		}, time);
- 	}
+		setTimeout(() => {
+			this.emitEvent(type, payload);
+		}, time);
+	}
 
 	async send<T>(data: T, method: "get" | "post") {
 		if (this.state instanceof ConnectedState) {
