@@ -21,19 +21,13 @@ export class ConnectingState implements State<ConnectionContext> {
 	}
 
 	enter() {
-		if (!localStorage.accessToken) {
-			this.fsm.emitEvent({ type: EventType.NOT_CONNECTED })
-			return
-		}
-
 		fetch(endpoints.requestWSEndpoint, {
 			headers: {
 				Authentication: localStorage.accessToken
 			}
 		}).then(response => {
 			if (!response.ok) {
-				this.fsm.emitEvent({ type: EventType.NOT_CONNECTED })
-				return
+				return this.fsm.emitEvent({ type: EventType.NOT_CONNECTED })
 			}
 
 			response.text().then((uid: string) => {
@@ -50,10 +44,11 @@ export class ConnectingState implements State<ConnectionContext> {
 		if (event.type === EventType.CONNECTED) {
 			this.fsm.setState(new ConnectedState(this.fsm, this.ctx)) 
 		} else if (event.type === EventType.NOT_CONNECTED) {
-			this.fsm.setState(
-				this.ctx.authProvider.isAuthenticated ?
-				new ReconnectDelayState(this.fsm, this.ctx) : new AuthentificatingState(this.fsm, this.ctx)
-			)
+			if (this.ctx.authProvider.isAuthenticated) {
+				this.fsm.setState(new ReconnectDelayState(this.fsm, this.ctx))
+			} else {
+				this.fsm.setState(new AuthentificatingState(this.fsm, this.ctx))
+			}
 		}
 	}
 }

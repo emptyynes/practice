@@ -83,16 +83,4 @@ export class ProtocolFSM implements FSM<ConnectionContext> {
 			this.emitEvent(event)
 		}, time)
 	}
-
-	// async send<T>(data: T, method: "get" | "post") {
-	// 	if (this.state instanceof ConnectedState) {
-	// 		try {
-	// 			return await this.ctx.webSocketTransport!.send<T>(data, method);
-	// 		} catch (error) {
-	// 			this.emitEvent({ type: EventType.FAIL, payload: { reason: `${error}` } });
-	// 		}
-	// 	} else {
-	// 		throw new Error(`cannot send data in ${this.state.constructor.name}`);
-	// 	}
-	// }
 }

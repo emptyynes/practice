@@ -23,8 +23,6 @@ export class ServerConnectionInternal {
 		this.fsm.emitEvent({ type: EventType.DISCONNECT })
 	}
 
-	// this.fsm.emitEvent({ type: EventType.AUTHENTICATED });
-
 	async send<T>(data: T, method: "get" | "post"): Promise<unknown> {
 		return await this.ctx.getWebSocketTransport().send<T>(data, method)
 	}
