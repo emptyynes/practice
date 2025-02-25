@@ -1,14 +1,14 @@
-import type { AuthProvider } from './types';
-import { EventType } from './ProtocolFSM/EventType';
-import { ServerConnectionInternal } from './ProtocolFSM/ServerConnectionInternal';
+import type { AuthProvider } from './types'
+import { EventType } from './ProtocolFSM/EventType'
+import { ServerConnectionInternal } from './ProtocolFSM/ServerConnectionInternal'
 
 
 export class ServerConnection {
-	static readonly retryTimeout = 1000;
+	static readonly retryTimeout = 1000
 	connectionInternal: ServerConnectionInternal
 
 	constructor(authProvider: AuthProvider) {
-		this.connectionInternal = new ServerConnectionInternal(authProvider);
+		this.connectionInternal = new ServerConnectionInternal(authProvider)
 	}
 
 	connect() {
@@ -17,29 +17,29 @@ export class ServerConnection {
 
 	async get<T>(data: T): Promise<unknown> {
 		while (true) {
-			console.log("GET") // eslint-disable-line
+			console.log("GET")  
 			try {
-				const result = await this.connectionInternal.send<T>(data, "get");
+				const result = await this.connectionInternal.send<T>(data, "get")
 				if (result instanceof Error) {
-					throw result;
+					throw result
 				} else {
-					return result;
+					return result
 				}
 			} catch {
 				if (!this.connectionInternal.canSend()) {
-					throw new Error("connection closed");
+					throw new Error("connection closed")
 				}
-				await new Promise(resolve => setTimeout(resolve, 1000));
+				await new Promise(resolve => setTimeout(resolve, 1000))
 			}
 		}
 	}
 
 	async post<T>(data: T) {
-		console.log("POST") // eslint-disable-line
+		console.log("POST")  
 		if (!this.connectionInternal.canSend()) {
-			throw new Error("connection closed");
+			throw new Error("connection closed")
 		}
-		return await this.connectionInternal.send<T>(data, "post"); 
+		return await this.connectionInternal.send<T>(data, "post") 
 	}
 
 	disconnect() {

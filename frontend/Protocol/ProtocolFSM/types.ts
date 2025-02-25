@@ -1,5 +1,5 @@
-import type { Event } from './Event';
-import type { EventType } from './EventType';
+import type { Event } from './Event'
+import type { EventType } from './EventType'
 
 
 export interface Context { };

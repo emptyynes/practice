@@ -1,5 +1,5 @@
-import type { State } from './types';
-import type { EventType } from './EventType';
+import type { State } from './types'
+import type { EventType } from './EventType'
 
 
 type constructorArgs = [EventType];

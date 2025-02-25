@@ -1,29 +1,29 @@
-import { ServerConnection } from './Protocol/ServerConnection';
-import { JWTAuthProvider } from './JWTAuthProvider';
+import { ServerConnection } from './Protocol/ServerConnection'
+import { JWTAuthProvider } from './JWTAuthProvider'
 
-export const auth = new JWTAuthProvider();
+export const auth = new JWTAuthProvider()
 
-export const api = new ServerConnection(auth);
+export const api = new ServerConnection(auth)
 
 auth.init().then(() => {
-	api.connect();
+	api.connect()
 
 	setTimeout(async () => {
 		try {
-			console.log(await api.get("testget"));
+			console.log(await api.get("testget"))
 		} catch {
-			console.log("catched");
+			console.log("catched")
 		};
-	}, 1000);
+	}, 1000)
 	setTimeout(async () => {
-		// try {
-			console.log(await api.post("testpost"));
-		// } catch {
-			// console.log("catched");
-		// };
-	}, 2000);
+		try {
+			console.log(await api.post("testpost"))
+		} catch {
+			console.log("catched")
+		};
+	}, 2000)
 
 	// setTimeout(async () => {
 		// api.disconnect()
 	// }, 1200)
-});
+})

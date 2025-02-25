@@ -14,8 +14,16 @@ module.exports = [
 			}
         },
 		rules: {
-			semi: "warn",
-			curly: "warn"
+			semi: ["warn", "never"],
+			curly: ["warn", "all"],
+			indent: ["warn", "tab", {
+				SwitchCase: 1,
+				ignoredNodes: ["ConditionalExpression"],
+				ignoreComments: true
+			}],
+			"brace-style": ["warn", "1tbs", {
+				allowSingleLine: false
+			}]
 		}
 	}
 ]

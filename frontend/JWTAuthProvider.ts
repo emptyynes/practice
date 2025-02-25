@@ -1,21 +1,21 @@
-import type { AuthProvider } from './Protocol/types.ts';
-import { endpoints } from './Protocol/config';
+import type { AuthProvider } from './Protocol/types.ts'
+import { endpoints } from './Protocol/config'
 
 
 export class JWTAuthProvider implements AuthProvider {
-	isAuthenticated: boolean = false;
-	private authSuccessCallback?: () => void = undefined;
-	private authFailedCallback?: () => void = undefined;
+	isAuthenticated: boolean = false
+	private authSuccessCallback?: () => void = undefined
+	private authFailedCallback?: () => void = undefined
 
 	async init() {
 		if (await this.check()) {
-			return true;
+			return true
 		}
 
 		try {
-			await this.refresh();
+			await this.refresh()
 		} catch {}
-		return await this.check();
+		return await this.check()
 	}
 
 	private async check() {
@@ -23,9 +23,9 @@ export class JWTAuthProvider implements AuthProvider {
 			headers: {
 				Authentication: localStorage.accessToken
 			}
-		});
-		this.isAuthenticated = response.ok;
-		return this.isAuthenticated;
+		})
+		this.isAuthenticated = response.ok
+		return this.isAuthenticated
 	}
 
 	private async refresh() {
@@ -33,8 +33,8 @@ export class JWTAuthProvider implements AuthProvider {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ token: localStorage.refreshToken })
-		});
-		localStorage.accessToken = JSON.parse(await accessTokenRequest.text()).token;
+		})
+		localStorage.accessToken = JSON.parse(await accessTokenRequest.text()).token
 	}
 
 	async login(username: string, password: string) {
@@ -42,20 +42,20 @@ export class JWTAuthProvider implements AuthProvider {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ username: username, password: password })
-		});
+		})
 		if (!refreshTokenRequest.ok) {
-			localStorage.auth = false;
+			localStorage.auth = false
 			if (this.authFailedCallback) {
-				this.authFailedCallback();
+				this.authFailedCallback()
 			}
-			return;
+			return
 		}
-		localStorage.refreshToken = JSON.parse(await refreshTokenRequest.text()).token;
+		localStorage.refreshToken = JSON.parse(await refreshTokenRequest.text()).token
 
-		await this.refresh();
+		await this.refresh()
 
 		if (this.authSuccessCallback) {
-			this.authSuccessCallback();
+			this.authSuccessCallback()
 		}
 	}
 
@@ -65,11 +65,11 @@ export class JWTAuthProvider implements AuthProvider {
 		}
 
 		if (!await this.check()) {
-			await this.refresh();
+			await this.refresh()
 		}
 
 		if (this.authSuccessCallback) {
-			this.authSuccessCallback();
+			this.authSuccessCallback()
 		}
 	}
 }
