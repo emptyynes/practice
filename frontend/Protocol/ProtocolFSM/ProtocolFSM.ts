@@ -1,26 +1,23 @@
-import type { AuthProvider } from '../types';
-import { State, FSM, FSMStateAPI, FSMProtocolAPI } from './types';
-import { Event, createEvent } from './Event';
+import { State, FSM } from './types';
+import { EventWrapper, Event } from './Event';
 import { EventType } from './EventType';
-import { SharedContext } from './SharedContext';
+import { ConnectionContext } from './ConnectionContext';
 import { IdleState } from './state/IdleState';
 import { ConnectedState } from './state/ConnectedState';
 import { WebSocketTransport } from '../WebSocketTransport';
 
 
-export class ProtocolFSM implements FSM, FSMStateAPI, FSMProtocolAPI {
-	private currentState: State;
-	private futureState?: State;
+export class ProtocolFSM implements FSM<ConnectionContext> {
+	private currentState: State<ConnectionContext>;
+	private futureState?: State<ConnectionContext>;
 	private isProcessingState: boolean = false;
 	private stateId: number = 0;
-	public ctx: SharedContext;
 	public get state() {
 		return this.currentState;
 	}
 
-	constructor(authProvider: AuthProvider) {
-		this.ctx = new SharedContext(authProvider);
-		this.currentState = new IdleState(this);
+	constructor(ctx: ConnectionContext) {
+		this.currentState = new IdleState(this, ctx);
 		console.log(`[FSM] Entering ${this.state.name}`) // eslint-disable-line
 		if (this.state.enter) {this.state.enter();}
 	}
@@ -51,43 +48,49 @@ export class ProtocolFSM implements FSM, FSMStateAPI, FSMProtocolAPI {
 		this.isProcessingState = false;
 	}
 
-	setState(state: State) {
+	setState(state: State<ConnectionContext>) {
 		console.log(`[FSM] Moving from ${this.state.name} state to ${state.name}`) // eslint-disable-line
 		this.futureState = state;
 		this.processNextState();
 	}
 
-	handleEvent(event: Event) {
-		if ((event.stateId) && (event.stateId !== this.stateId)) {
-			console.warn(`event ${event.type} id does not match ${this.state.name} state id`);
+	private handleEvent(wrapper: EventWrapper) {
+		if ((wrapper.stateId) && (wrapper.stateId !== this.stateId)) {
+			console.warn(`event ${wrapper.event.type} id does not match ${this.state.name} state id`);
+			return;
 		}
 
 		setTimeout(() => {
-			console.log(`[FSM] Handling ${event.type} at ${this.state.constructor.name}`) // eslint-disable-line
-			if (this.state.handle) {this.state.handle(event);}
+			console.log(`[FSM] Handling ${wrapper.event.type} at ${this.state.constructor.name}`) // eslint-disable-line
+			if (this.state.handle) {
+				this.state.handle(wrapper.event);
+			}
 		}, 0);
 	}
 
-	emitEvent(type: EventType, payload?: unknown) {
-		this.handleEvent(createEvent(type, this.stateId, payload));
+	emitEvent(event: Event) {
+		this.handleEvent({
+			stateId: this.stateId,
+			event
+		});
 	}
 
-	startEventTimer(type: EventType, time: number, payload?: unknown) {
-		console.log(`[FSM] Set timer for ${type} event ${time / 1000}s`) // eslint-disable-line
+	startEventTimer(event: Event, time: number) {
+		console.log(`[FSM] Set timer for ${event.type} event ${time / 1000}s`) // eslint-disable-line
 		setTimeout(() => {
-			this.emitEvent(type, payload);
+			this.emitEvent(event);
 		}, time);
 	}
 
-	async send<T>(data: T, method: "get" | "post") {
-		if (this.state instanceof ConnectedState) {
-			try {
-				return await this.ctx.webSocketTransport!.send<T>(data, method);
-			} catch (error) {
-				this.emitEvent(EventType.FAIL, error);
-			}
-		} else {
-			throw new Error(`cannot send data in ${this.state.constructor.name}`);
-		}
-	}
+	// async send<T>(data: T, method: "get" | "post") {
+	// 	if (this.state instanceof ConnectedState) {
+	// 		try {
+	// 			return await this.ctx.webSocketTransport!.send<T>(data, method);
+	// 		} catch (error) {
+	// 			this.emitEvent({ type: EventType.FAIL, payload: { reason: `${error}` } });
+	// 		}
+	// 	} else {
+	// 		throw new Error(`cannot send data in ${this.state.constructor.name}`);
+	// 	}
+	// }
 }

@@ -1,15 +1,11 @@
-import { ProtocolAPI } from './Protocol/ProtocolAPI';
+import { ServerConnection } from './Protocol/ServerConnection';
 import { JWTAuthProvider } from './JWTAuthProvider';
 
 export const auth = new JWTAuthProvider();
 
-export const api = new ProtocolAPI(auth);
+export const api = new ServerConnection(auth);
 
-auth.init(() => {
-	api.onAuthenticated();
-}, () => {
-	console.log("auth failed");
-}).then(() => {
+auth.init().then(() => {
 	api.connect();
 
 	setTimeout(async () => {
@@ -20,11 +16,11 @@ auth.init(() => {
 		};
 	}, 1000);
 	setTimeout(async () => {
-		try {
+		// try {
 			console.log(await api.post("testpost"));
-		} catch {
-			console.log("catched");
-		};
+		// } catch {
+			// console.log("catched");
+		// };
 	}, 2000);
 
 	// setTimeout(async () => {

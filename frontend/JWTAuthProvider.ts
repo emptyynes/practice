@@ -7,7 +7,7 @@ export class JWTAuthProvider implements AuthProvider {
 	private authSuccessCallback?: () => void = undefined;
 	private authFailedCallback?: () => void = undefined;
 
-	async init(authSuccessCallback: () => void, authFailedCallback: () => void) {
+	async init() {
 		if (await this.check()) {
 			return true;
 		}
@@ -16,8 +16,6 @@ export class JWTAuthProvider implements AuthProvider {
 			await this.refresh();
 		} catch {}
 		return await this.check();
-		this.authSuccessCallback = authSuccessCallback;
-		this.authFailedCallback = authFailedCallback;
 	}
 
 	private async check() {
@@ -39,30 +37,39 @@ export class JWTAuthProvider implements AuthProvider {
 		localStorage.accessToken = JSON.parse(await accessTokenRequest.text()).token;
 	}
 
-	async auth(username: string, password: string) {
-		if (localStorage.refreshToken) {
-			if (this.authSuccessCallback) {
-				this.authSuccessCallback();
+	async login(username: string, password: string) {
+		let refreshTokenRequest = await fetch(`${endpoints.auth}/login`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ username: username, password: password })
+		});
+		if (!refreshTokenRequest.ok) {
+			localStorage.auth = false;
+			if (this.authFailedCallback) {
+				this.authFailedCallback();
 			}
-			return await this.refresh();
-		} else {
-			let refreshTokenRequest = await fetch(`${endpoints.auth}/login`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ username: username, password: password })
-			});
-			if (!refreshTokenRequest.ok) {
-				localStorage.auth = false;
-				if (this.authFailedCallback) {
-					this.authFailedCallback();
-				}
-				return;
-			}
-			localStorage.refreshToken = JSON.parse(await refreshTokenRequest.text()).token;
-			if (this.authSuccessCallback) {
-				this.authSuccessCallback();
-			}
+			return;
+		}
+		localStorage.refreshToken = JSON.parse(await refreshTokenRequest.text()).token;
+
+		await this.refresh();
+
+		if (this.authSuccessCallback) {
+			this.authSuccessCallback();
+		}
+	}
+
+	async auth() {
+		if (!localStorage.refreshToken) {
+			throw new Error("no refresh token")
+		}
+
+		if (!await this.check()) {
 			await this.refresh();
+		}
+
+		if (this.authSuccessCallback) {
+			this.authSuccessCallback();
 		}
 	}
 }

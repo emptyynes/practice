@@ -6,9 +6,10 @@ export class WebSocketTransport {
 	private connected: boolean = true;
 	socket: WebSocket;
 	latestRequestId = 0;
-	requestsMap = new Map<number, [(value: unknown) => void, NodeJS.Timeout]>();
+	requestsMap = new Map<number, [(value: unknown) => void, ReturnType<typeof setTimeout>]>();
 
-	socketMessageEventHandler = (event: MessageEvent) => {
+	private socketCloseEventHandler?: () => void
+	private socketMessageEventHandler = (event: MessageEvent) => {
 		let response: WebSocketResponse<any> = JSON.parse(event.data.toString());
 
 		let entry = this.requestsMap.get(response.id);
@@ -20,19 +21,35 @@ export class WebSocketTransport {
 		}
 	};
 
+	addOnClosedListener(listener: () => void) {
+		this.socketCloseEventHandler = listener;
+		this.socket.addEventListener("close", this.socketCloseEventHandler);
+	}
+
 	constructor(host: string, channelId: string) {
 		this.socket = new WebSocket(`ws://${host}${endpoints.ws}/${channelId}`);
-
+		
 		this.socket.addEventListener("message", this.socketMessageEventHandler);
+	}
+
+	connect(callback: () => void) {
+		this.socket.addEventListener("open", (_) => {
+			this.connected = true;
+			callback();
+		})
 	}
 
 	disconnect() {
 		this.connected = false;
+
+		if (this.socketCloseEventHandler) {
+			this.socket.removeEventListener("close", this.socketCloseEventHandler);
+		}
 		this.socket.removeEventListener("message", this.socketMessageEventHandler);
+		
 		if (this.socket.readyState === WebSocket.OPEN) {
 			this.socket.close();
-		}
-		else if (this.socket.readyState === WebSocket.CONNECTING) {
+		} else if (this.socket.readyState === WebSocket.CONNECTING) {
 			this.socket.addEventListener("open", (_) => {
 				this.socket.close();
 			});

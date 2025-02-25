@@ -1,25 +1,28 @@
 import { State } from '../types';
 import { Event } from '../Event';
 import { EventType } from '../EventType';
-import { FSMStateAPI } from '../types';
+import { FSM } from '../types';
 import { WebSocketTransport } from '../../WebSocketTransport';
 import { ConnectedState } from './ConnectedState';
 import { ReconnectDelayState } from './ReconnectDelayState';
 import { AuthentificatingState } from './AuthentificatingState';
 import { endpoints } from '../../config';
+import type { ConnectionContext } from '../ConnectionContext';
 
 
-export class ConnectingState implements State {
-	private readonly fsm: FSMStateAPI;
+export class ConnectingState implements State<ConnectionContext> {
+	private readonly fsm: FSM<ConnectionContext>;
+	private readonly ctx: ConnectionContext;
 	readonly name = "Connecting";
 	
-	constructor(fsm: FSMStateAPI) {
+	constructor(fsm: FSM<ConnectionContext>, ctx: ConnectionContext) {
 		this.fsm = fsm;
+		this.ctx = ctx;
 	}
 
 	enter() {
 		if (!localStorage.accessToken) {
-			this.fsm.emitEvent(EventType.NOT_CONNECTED);
+			this.fsm.emitEvent({ type: EventType.NOT_CONNECTED });
 			return;
 		}
 
@@ -29,27 +32,27 @@ export class ConnectingState implements State {
 			}
 		}).then(response => {
 			if (!response.ok) {
-				this.fsm.emitEvent(EventType.NOT_CONNECTED);
+				this.fsm.emitEvent({ type: EventType.NOT_CONNECTED });
 				return;
 			}
 
 			response.text().then((uid: string) => {
-				this.fsm.ctx.webSocketTransport = new WebSocketTransport(window.location.host, uid);
-
-				this.fsm.ctx.webSocketTransport.socket.addEventListener("open", (_) => {
-					this.fsm.emitEvent(EventType.CONNECTED);
-				});
+				let webSocketTransport = new WebSocketTransport(window.location.host, uid);
+				webSocketTransport.connect(() => {
+					this.fsm.emitEvent({ type: EventType.CONNECTED });
+				})
+				this.ctx.setWebSocketTransport(webSocketTransport);
 			});
 		});
 	}
 
 	handle(event: Event) {
 		if (event.type === EventType.CONNECTED) {
-			this.fsm.setState(new ConnectedState(this.fsm));
+			this.fsm.setState(new ConnectedState(this.fsm, this.ctx));
 		} else if (event.type === EventType.NOT_CONNECTED) {
 			this.fsm.setState(
-				this.fsm.ctx.authProvider.isAuthenticated ?
-				new ReconnectDelayState(this.fsm) : new AuthentificatingState(this.fsm)
+				this.ctx.authProvider.isAuthenticated ?
+				new ReconnectDelayState(this.fsm, this.ctx) : new AuthentificatingState(this.fsm, this.ctx)
 			);
 		}
 	}

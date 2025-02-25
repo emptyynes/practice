@@ -1,34 +1,32 @@
-import { FSMProtocolAPI } from './ProtocolFSM/types';
-import { ProtocolFSM } from './ProtocolFSM/ProtocolFSM';
 import type { AuthProvider } from './types';
-import { IdleState } from './ProtocolFSM/state/IdleState';
 import { EventType } from './ProtocolFSM/EventType';
+import { ServerConnectionInternal } from './ProtocolFSM/ServerConnectionInternal';
 
 
-export class ProtocolAPI {
+export class ServerConnection {
 	static readonly retryTimeout = 1000;
-	private readonly fsm: FSMProtocolAPI;
-	
+	connectionInternal: ServerConnectionInternal
+
 	constructor(authProvider: AuthProvider) {
-		this.fsm = new ProtocolFSM(authProvider);
+		this.connectionInternal = new ServerConnectionInternal(authProvider);
 	}
 
 	connect() {
-		this.fsm.emitEvent(EventType.CONNECT);
+		this.connectionInternal.connect()
 	}
 
 	async get<T>(data: T): Promise<unknown> {
 		while (true) {
 			console.log("GET") // eslint-disable-line
 			try {
-				const result = await this.fsm.send<T>(data, "get");
+				const result = await this.connectionInternal.send<T>(data, "get");
 				if (result instanceof Error) {
 					throw result;
 				} else {
 					return result;
 				}
 			} catch {
-				if (this.fsm.state instanceof IdleState) {
+				if (!this.connectionInternal.canSend()) {
 					throw new Error("connection closed");
 				}
 				await new Promise(resolve => setTimeout(resolve, 1000));
@@ -38,14 +36,16 @@ export class ProtocolAPI {
 
 	async post<T>(data: T) {
 		console.log("POST") // eslint-disable-line
-		return await this.fsm.send<T>(data, "post"); 
+		if (!this.connectionInternal.canSend()) {
+			throw new Error("connection closed");
+		}
+		return await this.connectionInternal.send<T>(data, "post"); 
 	}
 
 	disconnect() {
-		this.fsm.emitEvent(EventType.DISCONNECT);
+		this.connectionInternal.disconnect()
 	}
 
 	onAuthenticated() {
-		this.fsm.emitEvent(EventType.AUTHENTICATED);
 	}
 }
