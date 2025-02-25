@@ -4,21 +4,21 @@ import type { WebSocketTransport } from '../WebSocketTransport'
 
 
 export class ConnectionContext implements Context {
-	authProvider: AuthProvider
-	private webSocketTransport?: WebSocketTransport
+    authProvider: AuthProvider
+    private webSocketTransport?: WebSocketTransport
 
-	constructor(authProvider: AuthProvider) {
-		this.authProvider = authProvider
-	}
+    constructor(authProvider: AuthProvider) {
+        this.authProvider = authProvider
+    }
 
-	getWebSocketTransport(): WebSocketTransport {
-		if (!this.webSocketTransport) {
-			throw new Error("webSocketTransport is missed")
-		}
-		return this.webSocketTransport
-	}
+    getWebSocketTransport(): WebSocketTransport {
+        if (!this.webSocketTransport) {
+            throw new Error("webSocketTransport is missed")
+        }
+        return this.webSocketTransport
+    }
 
-	setWebSocketTransport(webSocketTransport: WebSocketTransport) {
-		this.webSocketTransport = webSocketTransport
-	}
+    setWebSocketTransport(webSocketTransport: WebSocketTransport) {
+        this.webSocketTransport = webSocketTransport
+    }
 }

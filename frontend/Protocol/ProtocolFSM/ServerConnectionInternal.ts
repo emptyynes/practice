@@ -7,27 +7,27 @@ import { ConnectionContext } from './ConnectionContext'
 
 
 export class ServerConnectionInternal {
-	private readonly fsm: ProtocolFSM
-	ctx: ConnectionContext
+    private readonly fsm: ProtocolFSM
+    ctx: ConnectionContext
 	
-	constructor(authProvider: AuthProvider) {
-		this.ctx = new ConnectionContext(authProvider)
-		this.fsm = new ProtocolFSM(this.ctx)
-	}
+    constructor(authProvider: AuthProvider) {
+        this.ctx = new ConnectionContext(authProvider)
+        this.fsm = new ProtocolFSM(this.ctx)
+    }
 	
-	connect() {
-		this.fsm.emitEvent({ type: EventType.CONNECT })
-	}
+    connect() {
+        this.fsm.emitEvent({ type: EventType.CONNECT })
+    }
 	
-	disconnect() {
-		this.fsm.emitEvent({ type: EventType.DISCONNECT })
-	}
+    disconnect() {
+        this.fsm.emitEvent({ type: EventType.DISCONNECT })
+    }
 
-	async send<T>(data: T, method: "get" | "post"): Promise<unknown> {
-		return await this.ctx.getWebSocketTransport().send<T>(data, method)
-	}
+    async send<T>(data: T, method: "get" | "post"): Promise<unknown> {
+        return await this.ctx.getWebSocketTransport().send<T>(data, method)
+    }
 
-	canSend(): boolean {
-		return this.fsm.state instanceof ConnectedState
-	}
+    canSend(): boolean {
+        return this.fsm.state instanceof ConnectedState
+    }
 }

@@ -3,7 +3,8 @@ const tsParser = require("@typescript-eslint/parser");
 module.exports = [
 	{
 		files: [
-			'frontend/**/*.ts'
+			'frontend/**/*.ts',
+			'backend/src/**/*.ts'
 		],
 		languageOptions: {
             ecmaVersion: 2022,
@@ -16,7 +17,7 @@ module.exports = [
 		rules: {
 			semi: ["warn", "never"],
 			curly: ["warn", "all"],
-			indent: ["warn", "tab", {
+			indent: ["warn", 4, {
 				SwitchCase: 1,
 				ignoredNodes: ["ConditionalExpression"],
 				ignoreComments: true
