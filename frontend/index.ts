@@ -11,15 +11,15 @@ auth.init().then(() => {
     setTimeout(async () => {
         try {
             console.log(await api.get("testget"))
-        } catch {
-            console.log("catched")
+        } catch (e) {
+            console.log(`catched ${e}`)
         };
     }, 1000)
     setTimeout(async () => {
         try {
             console.log(await api.post("testpost"))
-        } catch {
-            console.log("catched")
+        } catch (e) {
+            console.log(`catched ${e}`)
         };
     }, 2000)
 

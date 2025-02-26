@@ -1,5 +1,4 @@
 import type { WebSocketResponse, WebSocketRequest } from './types.ts'
-import { endpoints } from './config'
 
 
 export class WebSocketTransport {
@@ -27,7 +26,7 @@ export class WebSocketTransport {
     }
 
     constructor(host: string, channelId: string) {
-        this.socket = new WebSocket(`ws://${host}${endpoints.ws}/${channelId}`)
+        this.socket = new WebSocket(`ws://${host}/websocket/${channelId}`)
 		
         this.socket.addEventListener("message", this.socketMessageEventHandler)
     }
@@ -50,7 +49,7 @@ export class WebSocketTransport {
         if (this.socket.readyState === WebSocket.OPEN) {
             this.socket.close()
         } else if (this.socket.readyState === WebSocket.CONNECTING) {
-            this.socket.addEventListener("open", (_) => {
+            this.socket.addEventListener("open", () => {
                 this.socket.close()
             })
         }
@@ -63,6 +62,7 @@ export class WebSocketTransport {
         if (this.socket.readyState !== WebSocket.OPEN) {
             throw new Error("WebSocket is not open")
         }
+
         return new Promise((resolve, reject) => {
             let request: WebSocketRequest<T> = {
                 id: this.latestRequestId++,
@@ -71,18 +71,14 @@ export class WebSocketTransport {
             }
             this.socket.send(JSON.stringify(request))
 
-
-            timeout = timeout ?? 3000
-
             let timer = setTimeout(() => {
                 this.requestsMap.delete(request.id)
-                if (this.connected) {
-                    reject(new Error(`timeout ${data}`))
-                } else {
+                if (!this.connected) {
                     resolve(undefined)
                 }
-            }, timeout)
-			
+                reject(new Error(`timeout ${data}`))                
+            }, timeout ?? 3000)
+
             this.requestsMap.set(request.id, [ resolve, timer ])
         })
     }

@@ -8,7 +8,8 @@ import { ConnectionContext } from './ConnectionContext'
 
 export class ServerConnectionInternal {
     private readonly fsm: ProtocolFSM
-    ctx: ConnectionContext
+    private readonly ctx: ConnectionContext
+    isOpen: boolean = false
 	
     constructor(authProvider: AuthProvider) {
         this.ctx = new ConnectionContext(authProvider)
@@ -16,10 +17,12 @@ export class ServerConnectionInternal {
     }
 	
     connect() {
+        this.isOpen = true
         this.fsm.emitEvent({ type: EventType.CONNECT })
     }
 	
     disconnect() {
+        this.isOpen = false
         this.fsm.emitEvent({ type: EventType.DISCONNECT })
     }
 

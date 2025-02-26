@@ -45,10 +45,15 @@ export interface AuthenticatedEvent {
 	type: EventType.AUTHENTICATED;
 }
 
+export interface AuthenticateEvent {
+	type: EventType.AUTHENTICATE;
+}
+
 export type Event = 
 	ConnectEvent		| DisconnectEvent	| ConnectedEvent |
 	NotConnectedEvent	| ReconnectEvent	| FailEvent |
-	PingSuccessEvent	| SendPingEvent 	| AuthenticatedEvent
+	PingSuccessEvent	| SendPingEvent 	| AuthenticatedEvent |
+	AuthenticateEvent
 
 export interface EventWrapper {
 	stateId?: number;

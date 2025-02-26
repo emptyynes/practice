@@ -6,7 +6,6 @@ import { WebSocketTransport } from '../../WebSocketTransport'
 import { ConnectedState } from './ConnectedState'
 import { ReconnectDelayState } from './ReconnectDelayState'
 import { AuthentificatingState } from './AuthentificatingState'
-import { endpoints } from '../../config'
 import type { ConnectionContext } from '../ConnectionContext'
 
 
@@ -21,7 +20,7 @@ export class ConnectingState implements State<ConnectionContext> {
     }
 
     enter() {
-        fetch(endpoints.requestWSEndpoint, {
+        fetch("/api/wsendpoint", {
             headers: {
                 Authentication: localStorage.accessToken
             }

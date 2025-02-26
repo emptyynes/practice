@@ -1,5 +1,4 @@
 import type { AuthProvider } from './Protocol/types.ts'
-import { endpoints } from './Protocol/config'
 
 
 export class JWTAuthProvider implements AuthProvider {
@@ -19,7 +18,7 @@ export class JWTAuthProvider implements AuthProvider {
     }
 
     private async check() {
-        let response = await fetch(`${endpoints.auth}/check`, {
+        let response = await fetch(`/api/auth/check`, {
             headers: {
                 Authentication: localStorage.accessToken
             }
@@ -29,16 +28,19 @@ export class JWTAuthProvider implements AuthProvider {
     }
 
     private async refresh() {
-        let accessTokenRequest = await fetch(`${endpoints.auth}/refresh`, {
+        let accessTokenRequest = await fetch(`/api/auth/refresh`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ token: localStorage.refreshToken })
         })
+        if (!accessTokenRequest.ok) {
+            throw new Error(`[JWT AUTH] /api/auth/refresh -> ${accessTokenRequest.status}`)
+        }
         localStorage.accessToken = JSON.parse(await accessTokenRequest.text()).token
     }
 
     async login(username: string, password: string) {
-        let refreshTokenRequest = await fetch(`${endpoints.auth}/login`, {
+        let refreshTokenRequest = await fetch(`/api/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username: username, password: password })

@@ -4,7 +4,6 @@ import { ServerConnectionInternal } from './ProtocolFSM/ServerConnectionInternal
 
 
 export class ServerConnection {
-    static readonly retryTimeout = 1000
     connectionInternal: ServerConnectionInternal
 
     constructor(authProvider: AuthProvider) {
@@ -16,8 +15,10 @@ export class ServerConnection {
     }
 
     async get<T>(data: T): Promise<unknown> {
+        let retryTimeouts = [1000, 3000, 6000];
+        let retryIndex = -1;
         while (true) {
-            console.log("GET")  
+            console.log("[SRV CONN] GET")
             try {
                 const result = await this.connectionInternal.send<T>(data, "get")
                 if (result instanceof Error) {
@@ -26,10 +27,13 @@ export class ServerConnection {
                     return result
                 }
             } catch {
-                if (!this.connectionInternal.canSend()) {
+                console.warn("[SRV CONN] CANNOT GET")
+                if (!this.connectionInternal.isOpen) {
                     throw new Error("connection closed")
                 }
-                await new Promise(resolve => setTimeout(resolve, 1000))
+                if ((++retryIndex) === retryTimeouts.length) retryIndex--;
+                console.log(`[SRV CONN] waiting ${retryTimeouts[retryIndex] / 1000}s`)
+                await new Promise(resolve => setTimeout(resolve, retryTimeouts[retryIndex]))
             }
         }
     }

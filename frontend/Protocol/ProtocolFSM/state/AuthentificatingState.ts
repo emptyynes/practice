@@ -17,17 +17,20 @@ export class AuthentificatingState implements State<ConnectionContext> {
     }
 
     enter() {
-        this.ctx.authProvider.auth()
-            .then(() => {
-                this.fsm.emitEvent({ type: EventType.AUTHENTICATED })
-            })
-            .catch(() => {
-                console.warn("auth failure")
-            })
+        this.fsm.emitEvent({ type: EventType.AUTHENTICATE })
     }
 
     handle(event: Event) {
-        if (event.type === EventType.AUTHENTICATED) {
+        if (event.type === EventType.AUTHENTICATE) {
+            this.ctx.authProvider.auth()
+                .then(() => {
+                    this.fsm.emitEvent({ type: EventType.AUTHENTICATED })
+                })
+                .catch((error) => {
+                    console.error(`[AUTH STATE] ${error}`)
+                    this.fsm.startEventTimer({ type: EventType.AUTHENTICATE }, 3000)
+                })
+        } else if (event.type === EventType.AUTHENTICATED) {
             this.fsm.setState(new ConnectingState(this.fsm, this.ctx))
         }
     }

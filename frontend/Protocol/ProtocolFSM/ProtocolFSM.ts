@@ -33,20 +33,15 @@ export class ProtocolFSM implements FSM<ConnectionContext> {
         }
 
         this.isProcessingState = true
+        console.log(`[FSM] Leaving ${this.state.name} state`)
+        this.state.leave?.()
 
-        console.log(`[FSM] Leaving ${this.state.name} state`)  
-        if (this.state.leave) {
-            this.state.leave()
-        }
-		
         this.stateId++
         this.currentState = this.futureState
-		
+        this.futureState = undefined
+        
         console.log(`[FSM] Entering ${this.state.name} state`)  
-        if (this.state.enter) {
-            this.state.enter()
-        }
-
+        this.state.enter?.()
         this.isProcessingState = false
     }
 

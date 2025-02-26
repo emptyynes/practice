@@ -1,6 +1,6 @@
 export interface AuthProvider {
 	isAuthenticated: boolean;
-	init: (authSuccessCallback: () => void, authFailedCallback: () => void) => Promise<boolean>;
+	init: () => Promise<boolean>;
 	auth: () => Promise<void>;
 }
 
