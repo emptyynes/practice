@@ -7,12 +7,12 @@ import { ReconnectDelayState } from './ReconnectDelayState'
 import type { ConnectionContext } from '../ConnectionContext'
 
 
-export class ConnectedState implements State<ConnectionContext> {
-    private readonly fsm: FSM<ConnectionContext>
+export class ConnectedState implements State {
+    private readonly fsm: FSM
     private readonly ctx: ConnectionContext
     readonly name = "Connected"
 	
-    constructor(fsm: FSM<ConnectionContext>, ctx: ConnectionContext) {
+    constructor(fsm: FSM, ctx: ConnectionContext) {
         this.fsm = fsm
         this.ctx = ctx
     }

@@ -2,17 +2,16 @@ import { State } from '../types'
 import { Event } from '../Event'
 import { EventType } from '../EventType'
 import { FSM } from '../types'
-import { IdleState } from './IdleState'
 import { ConnectingState } from './ConnectingState'
 import type { ConnectionContext } from '../ConnectionContext'
 
 
-export class ReconnectDelayState implements State<ConnectionContext> {
-    private readonly fsm: FSM<ConnectionContext>
+export class ReconnectDelayState implements State {
+    private readonly fsm: FSM
     private readonly ctx: ConnectionContext
     readonly name = "ReconnectDelay"
 	
-    constructor(fsm: FSM<ConnectionContext>, ctx: ConnectionContext) {
+    constructor(fsm: FSM, ctx: ConnectionContext) {
         this.fsm = fsm
         this.ctx = ctx
     }

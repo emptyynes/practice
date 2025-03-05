@@ -1,5 +1,4 @@
 import type { AuthProvider } from '../types'
-import type { Event } from './Event'
 import { ProtocolFSM } from './ProtocolFSM'
 import { ConnectedState } from './state/ConnectedState'
 import { EventType } from './EventType'

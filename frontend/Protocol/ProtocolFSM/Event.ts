@@ -1,10 +1,4 @@
-import type { State } from './types'
 import type { EventType } from './EventType'
-
-
-type constructorArgs = [EventType];
-type constructorArgsWithId = [number, EventType];
-type constructorArgsWithIdAndPayload<T> = [number, EventType, T];
 
 
 export interface ConnectEvent {

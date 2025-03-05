@@ -7,12 +7,12 @@ import { AuthentificatingState } from './AuthentificatingState'
 import type { ConnectionContext } from '../ConnectionContext'
 
 
-export class IdleState implements State<ConnectionContext> {
-    private readonly fsm: FSM<ConnectionContext>
+export class IdleState implements State {
+    private readonly fsm: FSM
     private readonly ctx: ConnectionContext
     readonly name = "Idle"
 	
-    constructor(fsm: FSM<ConnectionContext>, ctx: ConnectionContext) {
+    constructor(fsm: FSM, ctx: ConnectionContext) {
         this.fsm = fsm
         this.ctx = ctx
     }

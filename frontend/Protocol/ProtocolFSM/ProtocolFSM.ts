@@ -1,15 +1,12 @@
 import { State, FSM } from './types'
 import { EventWrapper, Event } from './Event'
-import { EventType } from './EventType'
 import { ConnectionContext } from './ConnectionContext'
 import { IdleState } from './state/IdleState'
-import { ConnectedState } from './state/ConnectedState'
-import { WebSocketTransport } from '../WebSocketTransport'
 
 
-export class ProtocolFSM implements FSM<ConnectionContext> {
-    private currentState: State<ConnectionContext>
-    private futureState?: State<ConnectionContext>
+export class ProtocolFSM implements FSM {
+    private currentState: State
+    private futureState?: State
     private isProcessingState: boolean = false
     private stateId: number = 0
     public get state() {
@@ -45,7 +42,7 @@ export class ProtocolFSM implements FSM<ConnectionContext> {
         this.isProcessingState = false
     }
 
-    setState(state: State<ConnectionContext>) {
+    setState(state: State) {
         console.log(`[FSM] Moving from ${this.state.name} state to ${state.name}`)  
         this.futureState = state
         this.processNextState()

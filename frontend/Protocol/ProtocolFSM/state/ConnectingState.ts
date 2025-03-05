@@ -9,12 +9,12 @@ import { AuthentificatingState } from './AuthentificatingState'
 import type { ConnectionContext } from '../ConnectionContext'
 
 
-export class ConnectingState implements State<ConnectionContext> {
-    private readonly fsm: FSM<ConnectionContext>
+export class ConnectingState implements State {
+    private readonly fsm: FSM
     private readonly ctx: ConnectionContext
     readonly name = "Connecting"
 	
-    constructor(fsm: FSM<ConnectionContext>, ctx: ConnectionContext) {
+    constructor(fsm: FSM, ctx: ConnectionContext) {
         this.fsm = fsm
         this.ctx = ctx
     }
