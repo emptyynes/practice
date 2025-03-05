@@ -1,9 +1,8 @@
 import type { AuthProvider } from '../types'
-import type { Context } from './types'
 import type { WebSocketTransport } from '../WebSocketTransport'
 
 
-export class ConnectionContext implements Context {
+export class ConnectionContext {
     authProvider: AuthProvider
     private webSocketTransport?: WebSocketTransport
 

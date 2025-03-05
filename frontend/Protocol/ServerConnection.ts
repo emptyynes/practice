@@ -1,5 +1,4 @@
 import type { AuthProvider } from './types'
-import { EventType } from './ProtocolFSM/EventType'
 import { ServerConnectionInternal } from './ProtocolFSM/ServerConnectionInternal'
 
 
@@ -15,8 +14,8 @@ export class ServerConnection {
     }
 
     async get<T>(data: T): Promise<unknown> {
-        let retryTimeouts = [1000, 3000, 6000];
-        let retryIndex = -1;
+        let retryTimeouts = [1000, 3000, 6000]
+        let retryIndex = -1
         while (true) {
             console.log("[SRV CONN] GET")
             try {
@@ -31,7 +30,9 @@ export class ServerConnection {
                 if (!this.connectionInternal.isOpen) {
                     throw new Error("connection closed")
                 }
-                if ((++retryIndex) === retryTimeouts.length) retryIndex--;
+                if ((++retryIndex) === retryTimeouts.length) {
+                    retryIndex--
+                }
                 console.log(`[SRV CONN] waiting ${retryTimeouts[retryIndex] / 1000}s`)
                 await new Promise(resolve => setTimeout(resolve, retryTimeouts[retryIndex]))
             }

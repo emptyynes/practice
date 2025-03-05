@@ -1,20 +1,18 @@
 import { State, FSM } from './types'
 import { EventWrapper, Event } from './Event'
-import { ConnectionContext } from './ConnectionContext'
-import { IdleState } from './state/IdleState'
 
 
 export class ProtocolFSM implements FSM {
-    private currentState: State
+    private currentState?: State
     private futureState?: State
     private isProcessingState: boolean = false
     private stateId: number = 0
     public get state() {
-        return this.currentState
+        return this.currentState!
     }
 
-    constructor(ctx: ConnectionContext) {
-        this.currentState = new IdleState(this, ctx)
+    init(initalState: State) {
+        this.currentState = initalState
         console.log(`[FSM] Entering ${this.state.name}`)  
         if (this.state.enter) {
             this.state.enter()

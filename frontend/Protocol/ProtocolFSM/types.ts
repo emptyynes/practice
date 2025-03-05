@@ -1,8 +1,6 @@
 import type { Event } from './Event'
 
 
-export interface Context { };
-
 export interface State {
 	name: string;
 	enter?: () => void;
